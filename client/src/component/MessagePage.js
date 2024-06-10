@@ -86,13 +86,7 @@ function MessagePage() {
     }
   }, [socketConnection, params.userId, user]);
 
-  // const handelOnChange = (e) => {
-  //   const { value } = e.target;
-  //   setMessage((prev) => ({
-  //     ...prev,
-  //     text: value
-  //   }));
-  // };
+ 
 
   const handelOnChange = (e)=>{
     const { name, value} = e.target
