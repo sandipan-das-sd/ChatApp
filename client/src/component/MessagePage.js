@@ -325,6 +325,7 @@ function MessagePage() {
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const [audioChunks, setAudioChunks] = useState([]);
+  const[allMessage,setAllMessage]=useState([])
   const [timer, setTimer] = useState(0);
   const timerRef = useRef(null);
 
@@ -391,13 +392,29 @@ function MessagePage() {
     if (socketConnection) {
       console.log('Socket connection established:', socketConnection.id);
       socketConnection.emit('message-page', params.userId);
-      socketConnection.on('message-user', (data) => {
+
+      const handleMessageUser = (data) => {
         setDataUser(data);
-      });
+        console.log('User Data:', data);
+      };
+
+      const handleMessage = (data) => {
+        console.log('Message Array:', data);
+        setAllMessage(data)
+      };
+      socketConnection.emit('message-page', params.userId);
+          
+      socketConnection.on('message-user', handleMessageUser);
+      socketConnection.on('message', handleMessage);
+
+      return () => {
+        socketConnection.off('message-user', handleMessageUser);
+        socketConnection.off('message', handleMessage);
+      };
     } else {
       console.log('Socket connection not established');
     }
-  }, [socketConnection, params.userId, user]);
+  }, [socketConnection, params.userId,user]);
 
   const handleOnChange = (e) => {
     const { name, value } = e.target;
@@ -417,11 +434,23 @@ function MessagePage() {
           text: message.text,
           imageUrl: message.imageUrl,
           videoUrl: message.videoUrl,
-          audioUrl: message.audioUrl
+          audioUrl: message.audioUrl,
+          msgByUserId:user?._id
         });
+        setMessage({
+          text: "",
+          imageUrl: "",
+          videoUrl: "",
+          audioUrl: ""
+        })
         console.log("Sender ID:", user?._id);
         console.log("Receiver ID:", params.userId);
         // Clear message after sending
+        socketConnection.on('Online User', (onlineUsers) => {
+          console.log('Received online users:', onlineUsers);
+          // Update Redux state or component state with onlineUsers
+        });
+        
         setMessage({ text: "", imageUrl: "", videoUrl: "", audioUrl: "" });
       }
     }
@@ -560,6 +589,20 @@ function MessagePage() {
             <Loading />
           </div>
         )}
+
+        {/* All Messages Here */}
+        <div>
+        {allMessage.map((msg, index) => {
+            return (
+              <div key={index} className={`message ${msg.sender === user._id ? 'sent' : 'received'}`}>
+                {msg.text && <p>{msg.text}</p>}
+                {msg.imageUrl && <img src={msg.imageUrl} alt="Message Image" />}
+                {msg.videoUrl && <video src={msg.videoUrl} controls />}
+                {msg.audioUrl && <audio src={msg.audioUrl} controls />}
+              </div>
+            );
+          })}
+        </div>
       </section>
 
       {/* Send Messages */}

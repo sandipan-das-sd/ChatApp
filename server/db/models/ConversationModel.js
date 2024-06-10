@@ -20,6 +20,11 @@ const messageSchema=new moongose.Schema({
     seen:{
         type:Boolean,
         default:false
+    },
+    msgByUserId:{
+        type:moongose.Schema.ObjectId,
+        required:true,
+        ref:'User'
     }
 },{
   timestamps :true 

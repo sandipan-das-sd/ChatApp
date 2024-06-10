@@ -90,7 +90,8 @@ io.on('connection', async (socket) => {
         text: data.text,
         imageUrl: data.imageUrl,
         videoUrl: data.videoUrl,
-        audioUrl: data.audioUrl
+        audioUrl: data.audioUrl,
+        msgByUserId:data?.msgByUserId
       })
       const saveMessage=await message.save()
     // console.log('new message', data);
@@ -101,13 +102,14 @@ io.on('connection', async (socket) => {
       _id:conversation?._id,
       "$push":{messages:saveMessage?._id}
     })
-    const getConversation=await ConversationModel.findOne({
+    const getConversationMessage=await ConversationModel.findOne({
       "$or":[
         {sender:data?.sender,receiver:data?.receiver},
         {sender:data?.receiver,receiver:data?.sender}
       ]
     }).populate('messages').sort({updateAt:-1})
-    console.log("getConversation",getConversation)
+    io.to(data?.sender).emit('message', getConversationMessage.messages)
+    io.to(data?.receiver).emit('message', getConversationMessage.messages)
   });
 
   // Handle disconnect
