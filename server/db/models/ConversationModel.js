@@ -47,7 +47,7 @@ const conversationSchema=new moongose.Schema({
 },{
     timestamps:true
 })
-const MessageModel= moongose.nodel("Message",messageSchema)
+const MessageModel= moongose.model("Message",messageSchema)
 const ConversationModel=moongose.model("Conversation",conversationSchema)
 module.exports={
     MessageModel,

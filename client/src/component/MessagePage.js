@@ -419,6 +419,8 @@ function MessagePage() {
           videoUrl: message.videoUrl,
           audioUrl: message.audioUrl
         });
+        console.log("Sender ID:", user?._id);
+        console.log("Receiver ID:", params.userId);
         // Clear message after sending
         setMessage({ text: "", imageUrl: "", videoUrl: "", audioUrl: "" });
       }
