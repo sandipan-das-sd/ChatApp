@@ -48,6 +48,11 @@ io.on('connection', async (socket) => {
     socket.emit('message-user', payload)
     console.log(payload)
   })
+  //new message
+
+  socket.on('new message',(data)=>{
+    console.log('new message',data)
+  })
   // Handle disconnect
   socket.on("disconnect", () => {
     console.log("Disconnected user", socket.id);
