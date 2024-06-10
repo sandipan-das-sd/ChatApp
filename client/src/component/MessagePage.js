@@ -87,7 +87,7 @@
 //     }
 //   }, [socketConnection, params.userId, user]);
 
- 
+
 
 //   const handelOnChange = (e)=>{
 //     const { name, value} = e.target
@@ -264,7 +264,7 @@
 
 //         {/* Type a message  Input Box */}
 //         <form  className='h-full w-full flex gap-2' onSubmit={handelSendMessage}>
-         
+
 
 //             <input
 //               type='text'
@@ -280,7 +280,7 @@
 //             </button>
 
 
-          
+
 //         </form>
 //       </section>
 //     </div>
@@ -362,6 +362,23 @@ function MessagePage() {
       videoUrl: uploadVideo.url
     }));
   };
+  const handelUploadAudio = async (e) => {
+    setLoading(true);
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      const uploadAudio = await uploadFiles(file, 'audio');
+      setLoading(false);
+      // Update the audioUrl property, not videoUrl
+      setMessage(prev => ({
+        ...prev,
+        audioUrl: uploadAudio.url // Change videoUrl to audioUrl
+      }));
+    } else {
+      console.error('No audio files selected.');
+    }
+  };
+
 
   const handleClearUploadVideo = async (e) => {
     setMessage(prev => ({
@@ -447,13 +464,13 @@ function MessagePage() {
       startRecording();
     }
   };
-const handelShowRecordTime=()=>{
-   function constRecordtimeDiv(){
-    <div className='fixed bottom-2 right-10 transform -translate-x-1/2  p-3'>
-          Recording: {Math.floor(timer / 60)}:{timer % 60 < 10 ? '0' : ''}{timer % 60}
-        </div>
+  const handelShowRecordTime = () => {
+    function constRecordtimeDiv() {
+      <div className='fixed bottom-2 right-10 transform -translate-x-1/2  p-3'>
+        Recording: {Math.floor(timer / 60)}:{timer % 60 < 10 ? '0' : ''}{timer % 60}
+      </div>
+    }
   }
-}
   useEffect(() => {
     if (isRecording) {
       timerRef.current = setInterval(() => {
@@ -478,7 +495,7 @@ const handelShowRecordTime=()=>{
             <Avatar
               width={50}
               height={50}
-              ImageUrl={dataUser?.profile_pic} 
+              ImageUrl={dataUser?.profile_pic}
               name={dataUser?.name}
               userId={dataUser?._id}
             />
@@ -557,7 +574,7 @@ const handelShowRecordTime=()=>{
             <div className='bg-white shadow rounded absolute bottom-14 w-36 p-2'>
               <form>
 
-              <label htmlFor='uploadImage' className='flex items-center p-2 px-3 gap-3 hover:bg-slate-200 cursor-pointer'>
+                <label htmlFor='uploadImage' className='flex items-center p-2 px-3 gap-3 hover:bg-slate-200 cursor-pointer'>
                   <div className='text-primary'>
                     <FaRegImage size={18} />
                   </div>
@@ -601,31 +618,34 @@ const handelShowRecordTime=()=>{
           />
 
           {/* Audio Recording Button */}
-        
-          {message.text.length === 0 && !message.imageUrl && !message.videoUrl && !message.audioUrl && (
-  // Show audio button
-  <button
-    type='button'
-    className={`flex items-center justify-center w-11 h-11 mt-2 rounded-full ${isRecording ? 'bg-red-500' : 'bg-gray-200'} hover:bg-primary hover:text-white`}
-    onClick={handleAudioButtonClick}
-    disabled={!!message.text || !!message.imageUrl || !!message.videoUrl}
-  >
-    {isRecording ? <FaStop size={20}
-    onClick={handelShowRecordTime}
-    /> : <FaMicrophone size={20} />}
-  </button>
-)}
 
-{message.text.length > 0 || message.imageUrl || message.videoUrl || message.audioUrl ? (
-  // Show send message button
-  <button
-    className='text-primary hover:text-secondary'
-    type='submit'
-    disabled={!(message.text || message.imageUrl || message.videoUrl || message.audioUrl)}
-  >
-    <LuSendHorizonal size={30} />
-  </button>
-) : null}
+          {message.text.length === 0 && !message.imageUrl && !message.videoUrl && !message.audioUrl && (
+            // Show audio button
+            <button
+              type='button'
+              className={`flex items-center justify-center w-11 h-11 mt-2 rounded-full ${isRecording ? 'bg-red-500' : 'bg-gray-200'} hover:bg-primary hover:text-white`}
+              onClick={handleAudioButtonClick}
+              disabled={!!message.text || !!message.imageUrl || !!message.videoUrl}
+            >
+              {isRecording ?
+                <LuSendHorizonal size={20}
+                />
+                :
+                <FaMicrophone size={20} onClick={handelUploadAudio} />}
+            </button>
+
+          )}
+
+          {message.text.length > 0 || message.imageUrl || message.videoUrl || message.audioUrl ? (
+            // Show send message button
+            <button
+              className='text-primary hover:text-secondary'
+              type='submit'
+              disabled={!(message.text || message.imageUrl || message.videoUrl || message.audioUrl)}
+            >
+              <LuSendHorizonal size={30} />
+            </button>
+          ) : null}
 
         </form>
       </section>
@@ -634,13 +654,21 @@ const handelShowRecordTime=()=>{
       {isRecording && (
         <div className='fixed bottom-2 right-10 transform -translate-x-1/2  p-3'>
           Recording: {Math.floor(timer / 60)}:{timer % 60 < 10 ? '0' : ''}{timer % 60}
+          <span className='inline-flex ml-6 cursor-pointer' onClick={() => {
+            setIsRecording(false)
+            stopRecording()
+          }} > <FaTrash /></span>
         </div>
-       
-       
-        
+
+
+
       )}
     </div>
   );
 }
 
 export default MessagePage;
+
+
+
+
