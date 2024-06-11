@@ -328,7 +328,7 @@ function MessagePage() {
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const [audioChunks, setAudioChunks] = useState([]);
-  const[allMessage,setAllMessage]=useState([])
+  const [allMessage, setAllMessage] = useState([])
   const [timer, setTimer] = useState(0);
   const timerRef = useRef(null);
   //for Currenrmessage showing to the top user have not to scrool
@@ -342,7 +342,7 @@ function MessagePage() {
       lastMessageRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
     }
   }, [allMessage]);
-  
+
 
   const handleUploadImageVideoOpen = () => {
     setOpenImageVideoUpload(prev => !prev);
@@ -423,42 +423,42 @@ function MessagePage() {
       //   // Update the message delivery status in your state
       //   setDataUser(data)
       // };
-  
+
       // const handleSeenStatus = (data) => {
       //   console.log('Seen Status:', data);
       //   // Update the message seen status in your state
       //   setDataUser(data)
       // };
 
-    // socketConnection.on('delivery-status', handleDeliveryStatus);
-    // socketConnection.on('seen-status', handleSeenStatus);
+      // socketConnection.on('delivery-status', handleDeliveryStatus);
+      // socketConnection.on('seen-status', handleSeenStatus);
 
       socketConnection.emit('message-page', params.userId);
-          
+
       socketConnection.on('message-user', handleMessageUser);
       socketConnection.on('message', handleMessage);
 
       return () => {
         socketConnection.off('message-user', handleMessageUser);
         socketConnection.off('message', handleMessage);
-      //   socketConnection.off('delivery-status', handleDeliveryStatus);
-      // socketConnection.off('seen-status', handleSeenStatus);
+        //   socketConnection.off('delivery-status', handleDeliveryStatus);
+        // socketConnection.off('seen-status', handleSeenStatus);
       };
     } else {
       console.log('Socket connection not established');
     }
-  }, [socketConnection, params.userId,user]);
+  }, [socketConnection, params.userId, user]);
 
-// Function to mark messages as seen
-// const markMessageAsSeen = (messageId) => {
-//   if (socketConnection) {
-//     socketConnection.emit('message seen', {
-//       messageId,
-//       receiver: user?._id,
-//       sender: params.userId
-//     });
-//   }
-// };
+  // Function to mark messages as seen
+  // const markMessageAsSeen = (messageId) => {
+  //   if (socketConnection) {
+  //     socketConnection.emit('message seen', {
+  //       messageId,
+  //       receiver: user?._id,
+  //       sender: params.userId
+  //     });
+  //   }
+  // };
 
   const handleOnChange = (e) => {
     const { name, value } = e.target;
@@ -479,7 +479,7 @@ function MessagePage() {
           imageUrl: message.imageUrl,
           videoUrl: message.videoUrl,
           audioUrl: message.audioUrl,
-          msgByUserId:user?._id
+          msgByUserId: user?._id
         });
         setMessage({
           text: "",
@@ -494,7 +494,7 @@ function MessagePage() {
           console.log('Received online users:', onlineUsers);
           // Update Redux state or component state with onlineUsers
         });
-        
+
         setMessage({ text: "", imageUrl: "", videoUrl: "", audioUrl: "" });
       }
     }
@@ -557,7 +557,7 @@ function MessagePage() {
     }
     return () => clearInterval(timerRef.current);
   }, [isRecording]);
-  
+
   return (
     <div style={{ backgroundImage: `url(${backgroundImage}) ` }} className='bg-no-repeat bg-cover bg-slate-200 bg-opacity-50'>
       {/* Header */}
@@ -635,34 +635,34 @@ function MessagePage() {
         )}
 
         {/* All Messages Here */}
-        
-        
-    return (
 
-      <div className='flex flex-col gap-2 py-2 mx-2' ref={lastMessageRef}>
-  {allMessage.map((msg, index) => (
-    <div
-      key={index}
-      className={`bg-white p-1 rounded w-fit my-2 ${user._id === msg.msgByUserId ? 'ml-auto bg-teal-100' : ''}`}
-    >
-      {msg.text && (
-        <p className=' p-1 py-1'>
-          {msg.text}
-          <p className='text-xs ml-auto w-fit'>
-            {moment(msg.createdAt).format('hh:mm')}
-          </p>
-        </p>
-      )}
 
-      {/* Display delivery and seen status */}
-      <div className='text-xs text-right'>
-        {msg.seenAt ? 'Seen' : msg.deliveredAt ? 'Delivered' : 'Sent'}
-      </div>
-    </div>
-  ))}
-</div>
+        return (
 
-    )
+        <div className='flex flex-col gap-2 py-2 mx-2' ref={lastMessageRef}>
+          {allMessage.map((msg, index) => (
+            <div
+              key={index}
+              className={`bg-white p-1 rounded w-fit my-2 ${user._id === msg.msgByUserId ? 'ml-auto bg-teal-100' : ''}`}
+            >
+              {msg.text && (
+                <p className=' p-1 py-1'>
+                  {msg.text}
+                  <p className='text-xs ml-auto w-fit'>
+                    {moment(msg.createdAt).format('hh:mm')}
+                  </p>
+                </p>
+              )}
+
+              {/* Display delivery and seen status */}
+              <div className='text-xs text-right'>
+                {msg.seenAt ? 'Seen' : msg.deliveredAt ? 'Delivered' : 'Sent'}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        )
 
       </section>
 

@@ -30,7 +30,7 @@ const messageSchema=new moongose.Schema({
         default: null
       },
     msgByUserId:{
-        type:moongose.Schema.ObjectId,
+        type:moongose.Schema.ObjectId,// User ID of sender
         required:true,
         ref:'User'
     }
