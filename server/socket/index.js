@@ -65,6 +65,8 @@ io.on('connection', async (socket) => {
     }
   });
 
+
+  
   // New message
   socket.on('new message', async(data) => {
 

@@ -21,6 +21,14 @@ const messageSchema=new moongose.Schema({
         type:Boolean,
         default:false
     },
+    deliveredAt: {
+        type: Date,
+        default: null
+      },
+      seenAt: {
+        type: Date,
+        default: null
+      },
     msgByUserId:{
         type:moongose.Schema.ObjectId,
         required:true,

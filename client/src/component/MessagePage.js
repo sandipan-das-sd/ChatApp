@@ -329,6 +329,18 @@ function MessagePage() {
   const[allMessage,setAllMessage]=useState([])
   const [timer, setTimer] = useState(0);
   const timerRef = useRef(null);
+  //for Currenrmessage showing to the top user have not to scrool
+  const lastMessageRef = useRef(null);
+
+
+
+
+  useEffect(() => {
+    if (lastMessageRef.current) {
+      lastMessageRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
+  }, [allMessage]);
+  
 
   const handleUploadImageVideoOpen = () => {
     setOpenImageVideoUpload(prev => !prev);
@@ -514,7 +526,7 @@ function MessagePage() {
     }
     return () => clearInterval(timerRef.current);
   }, [isRecording]);
-
+  
   return (
     <div style={{ backgroundImage: `url(${backgroundImage}) ` }} className='bg-no-repeat bg-cover bg-slate-200 bg-opacity-50'>
       {/* Header */}
@@ -592,21 +604,32 @@ function MessagePage() {
         )}
 
         {/* All Messages Here */}
-        <div className='flex flex-col gap-2 py-2 '>
-        {allMessage.map((msg, index) => {
-            return (
-              <div key={index} className={` bg-white p-1 rounded w-fit my-2  ${user._id===msg.msgByUserId ?"ml-auto":"" }`}>
-                {msg.text && <p className='bg-white p-1 py-1'>{msg.text}
-                <p className='text-xs ml-auto w-fit'>{moment(msg.createdAt).format('hh:mm')}</p>
-                  </p>}
-                
-                {/* {msg.imageUrl && <img src={msg.imageUrl} alt="Message Image" />} */}
-                {/* {msg.videoUrl && <video src={msg.videoUrl} controls />}
-                {msg.audioUrl && <audio src={msg.audioUrl} controls />} */}
-              </div>
-            );
-          })}
+        
+        
+    return (
+
+      <div className='flex flex-col gap-2 py-2 mx-2' ref={lastMessageRef}>
+      {allMessage.map((msg, index) => (
+        <div
+          key={index}
+          className={`bg-white p-1 rounded w-fit my-2 ${user._id === msg.msgByUserId ? 'ml-auto bg-teal-100' : ''}`}
+        >
+          {msg.text && (
+            <p className=' p-1 py-1'>
+              {msg.text}
+              <p className='text-xs ml-auto w-fit'>
+                {moment(msg.createdAt).format('hh:mm')}
+              </p>
+            </p>
+          )}
+          {/* <p className='text-xs text-right'>
+            {msg.seenAt ? 'Seen' : msg.deliveredAt ? 'Delivered' : 'Sent'}
+          </p> */}
         </div>
+      ))}
+    </div>
+    )
+
       </section>
 
       {/* Send Messages */}
