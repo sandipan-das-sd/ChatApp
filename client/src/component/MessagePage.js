@@ -591,14 +591,14 @@ function MessagePage() {
         )}
 
         {/* All Messages Here */}
-        <div>
+        <div className='flex flex-col gap-2'>
         {allMessage.map((msg, index) => {
             return (
-              <div key={index} className={`message ${msg.sender === user._id ? 'sent' : 'received'}`}>
-                {msg.text && <p>{msg.text}</p>}
+              <div key={index} className={`message ${msg.sender === user._id ? 'sent' : 'received'} bg-white p-1 rounded w-fit`}>
+                {msg.text && <p className='bg-white p-1 py-1'>{msg.text}</p>}
                 {msg.imageUrl && <img src={msg.imageUrl} alt="Message Image" />}
-                {msg.videoUrl && <video src={msg.videoUrl} controls />}
-                {msg.audioUrl && <audio src={msg.audioUrl} controls />}
+                {/* {msg.videoUrl && <video src={msg.videoUrl} controls />}
+                {msg.audioUrl && <audio src={msg.audioUrl} controls />} */}
               </div>
             );
           })}
