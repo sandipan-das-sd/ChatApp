@@ -231,11 +231,15 @@ io.on('connection', async (socket) => {
     // console.log("Convrsation",conversation)
     // console.log("Sender Id:-",data.sender)
     // console.log("receiver Id :-",data.receiver)
-    const updateConversation=await ConversationModel.updateOne({
+    // const updateConversation=await ConversationModel.updateOne({
       
-      _id:conversation?._id,
-      "$push":{messages:saveMessage?._id}
-    })
+    //   _id:conversation?._id,
+    //   "$push":{messages:saveMessage?._id}
+    // })
+
+    const updateConversation = await ConversationModel.updateOne({ _id : conversation?._id },{
+      "$push" : { messages : saveMessage?._id }
+  })
     const getConversationMessage=await ConversationModel.findOne({
       "$or":[
         {sender:data?.sender,receiver:data?.receiver},
