@@ -312,7 +312,9 @@ function MessagePage() {
     email: "",
     profile_pic: "",
     online: false,
-    _id: ""
+    _id: "",
+    // seen:false,
+    // deliverd:false
   });
 
   const [message, setMessage] = useState({
@@ -415,6 +417,22 @@ function MessagePage() {
         console.log('Message Array:', data);
         setAllMessage(data)
       };
+
+      // const handleDeliveryStatus = (data) => {
+      //   console.log('Delivery Status:', data);
+      //   // Update the message delivery status in your state
+      //   setDataUser(data)
+      // };
+  
+      // const handleSeenStatus = (data) => {
+      //   console.log('Seen Status:', data);
+      //   // Update the message seen status in your state
+      //   setDataUser(data)
+      // };
+
+    // socketConnection.on('delivery-status', handleDeliveryStatus);
+    // socketConnection.on('seen-status', handleSeenStatus);
+
       socketConnection.emit('message-page', params.userId);
           
       socketConnection.on('message-user', handleMessageUser);
@@ -423,11 +441,24 @@ function MessagePage() {
       return () => {
         socketConnection.off('message-user', handleMessageUser);
         socketConnection.off('message', handleMessage);
+      //   socketConnection.off('delivery-status', handleDeliveryStatus);
+      // socketConnection.off('seen-status', handleSeenStatus);
       };
     } else {
       console.log('Socket connection not established');
     }
   }, [socketConnection, params.userId,user]);
+
+// Function to mark messages as seen
+// const markMessageAsSeen = (messageId) => {
+//   if (socketConnection) {
+//     socketConnection.emit('message seen', {
+//       messageId,
+//       receiver: user?._id,
+//       sender: params.userId
+//     });
+//   }
+// };
 
   const handleOnChange = (e) => {
     const { name, value } = e.target;
@@ -609,25 +640,28 @@ function MessagePage() {
     return (
 
       <div className='flex flex-col gap-2 py-2 mx-2' ref={lastMessageRef}>
-      {allMessage.map((msg, index) => (
-        <div
-          key={index}
-          className={`bg-white p-1 rounded w-fit my-2 ${user._id === msg.msgByUserId ? 'ml-auto bg-teal-100' : ''}`}
-        >
-          {msg.text && (
-            <p className=' p-1 py-1'>
-              {msg.text}
-              <p className='text-xs ml-auto w-fit'>
-                {moment(msg.createdAt).format('hh:mm')}
-              </p>
-            </p>
-          )}
-          {/* <p className='text-xs text-right'>
-            {msg.seenAt ? 'Seen' : msg.deliveredAt ? 'Delivered' : 'Sent'}
-          </p> */}
-        </div>
-      ))}
+  {allMessage.map((msg, index) => (
+    <div
+      key={index}
+      className={`bg-white p-1 rounded w-fit my-2 ${user._id === msg.msgByUserId ? 'ml-auto bg-teal-100' : ''}`}
+    >
+      {msg.text && (
+        <p className=' p-1 py-1'>
+          {msg.text}
+          <p className='text-xs ml-auto w-fit'>
+            {moment(msg.createdAt).format('hh:mm')}
+          </p>
+        </p>
+      )}
+
+      {/* Display delivery and seen status */}
+      <div className='text-xs text-right'>
+        {msg.seenAt ? 'Seen' : msg.deliveredAt ? 'Delivered' : 'Sent'}
+      </div>
     </div>
+  ))}
+</div>
+
     )
 
       </section>
