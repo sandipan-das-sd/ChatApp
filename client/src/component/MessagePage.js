@@ -331,6 +331,7 @@ function MessagePage() {
   const [allMessage, setAllMessage] = useState([])
   const [timer, setTimer] = useState(0);
   const timerRef = useRef(null);
+  
   //for Currenrmessage showing to the top user have not to scrool
   const lastMessageRef = useRef(null);
 
@@ -353,6 +354,7 @@ function MessagePage() {
     const file = e.target.files[0];
     const uploadPhoto = await uploadFiles(file);
     setLoading(false);
+    alert("Video")
     setOpenImageVideoUpload(false);
     setMessage(prev => ({
       ...prev,
@@ -643,7 +645,7 @@ function MessagePage() {
           {allMessage.map((msg, index) => (
             <div
               key={index}
-              className={`bg-white p-1 rounded w-fit my-2 ${user._id === msg.msgByUserId ? 'ml-auto bg-teal-100' : ''}`}
+              className={`bg-white p-1 rounded w-fit my-2 ${user._id === msg.msgByUserId ? 'ml-auto bg-teal-200' : ''}`}
             >
               {msg.text && (
                 <p className=' p-1 py-1'>
