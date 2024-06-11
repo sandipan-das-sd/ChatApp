@@ -301,6 +301,7 @@ import uploadFiles from '../helpers/uploadFiles';
 import Loading from './Loading';
 import backgroundImage from "./../assets/wallapaper.jpeg";
 import { LuSendHorizonal } from "react-icons/lu";
+import moment from 'moment'
 
 function MessagePage() {
   const params = useParams();
@@ -591,12 +592,15 @@ function MessagePage() {
         )}
 
         {/* All Messages Here */}
-        <div className='flex flex-col gap-2'>
+        <div className='flex flex-col gap-2 py-2 '>
         {allMessage.map((msg, index) => {
             return (
-              <div key={index} className={`message ${msg.sender === user._id ? 'sent' : 'received'} bg-white p-1 rounded w-fit`}>
-                {msg.text && <p className='bg-white p-1 py-1'>{msg.text}</p>}
-                {msg.imageUrl && <img src={msg.imageUrl} alt="Message Image" />}
+              <div key={index} className={` bg-white p-1 rounded w-fit my-2  ${user._id===msg.msgByUserId ?"ml-auto":"" }`}>
+                {msg.text && <p className='bg-white p-1 py-1'>{msg.text}
+                <p className='text-xs ml-auto w-fit'>{moment(msg.createdAt).format('hh:mm')}</p>
+                  </p>}
+                
+                {/* {msg.imageUrl && <img src={msg.imageUrl} alt="Message Image" />} */}
                 {/* {msg.videoUrl && <video src={msg.videoUrl} controls />}
                 {msg.audioUrl && <audio src={msg.audioUrl} controls />} */}
               </div>
