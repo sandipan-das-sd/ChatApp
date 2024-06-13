@@ -269,7 +269,6 @@ const http = require('http');
 const dotenv = require('dotenv');
 const getUserDetailsfromToken = require('../helpers/getUserDeatilsFromToken');
 const UserModel = require("../db/models/UserModel");
-const { profile } = require("console");
 const { ConversationModel, MessageModel } = require("../db/models/ConversationModel");
 
 dotenv.config();
@@ -285,7 +284,7 @@ const io = new Server(server, {
 });
 
 // Online users
-const onlineUser = new Set();
+const onlineUsers = new Set();
 
 io.on('connection', async (socket) => {
   console.log("Connected user", socket.id);
@@ -307,11 +306,11 @@ io.on('connection', async (socket) => {
     }
 
     // Create a room
-    socket.join(user._id.toString());
-    onlineUser.add(user._id.toString());
+    socket.join(user?._id.toString());
+    onlineUsers.add(user?._id.toString());
 
     // Send online user to client side
-    io.emit("Online User", Array.from(onlineUser));
+    io.emit("Online User", Array.from(onlineUsers));
 
     socket.on('message-page', async (userId) => {
       console.log('userId', userId);
@@ -322,10 +321,20 @@ io.on('connection', async (socket) => {
           name: userDetails.name,
           email: userDetails.email,
           profile_pic: userDetails.profile_pic,
-          online: onlineUser.has(userId)
+          online: onlineUsers.has(userId)
         };
         socket.emit('message-user', payload);
         console.log(payload);
+
+        // Get previous messages
+        const getConversationMessage = await ConversationModel.findOne({
+          "$or": [
+            { sender: user._id, receiver: userId },
+            { sender: userId, receiver: user._id }
+          ]
+        }).populate('messages').sort({ updatedAt: -1 });
+
+        socket.emit('message', getConversationMessage ? getConversationMessage.messages : []);
       } else {
         console.log('User not found:', userId);
       }
@@ -357,15 +366,17 @@ io.on('connection', async (socket) => {
       });
       const saveMessage = await message.save();
 
-      const updateConversation = await ConversationModel.updateOne({ _id: conversation?._id }, {
-        "$push": { messages: saveMessage?._id }
+      await ConversationModel.updateOne({ _id: conversation._id }, {
+        "$push": { messages: saveMessage._id }
       });
+
       const getConversationMessage = await ConversationModel.findOne({
         "$or": [
           { sender: data?.sender, receiver: data?.receiver },
           { sender: data?.receiver, receiver: data?.sender }
         ]
-      }).populate('messages').sort({ updateAt: -1 });
+      }).populate('messages').sort({ updatedAt: -1 });
+
       io.to(data?.sender).emit('message', getConversationMessage.messages);
       io.to(data?.receiver).emit('message', getConversationMessage.messages);
     });
@@ -373,8 +384,8 @@ io.on('connection', async (socket) => {
     // Handle disconnect
     socket.on("disconnect", () => {
       console.log("Disconnected user", socket.id);
-      onlineUser.delete(user._id.toString());
-      io.emit("Online User", Array.from(onlineUser));
+      onlineUsers.delete(user._id.toString());
+      io.emit("Online User", Array.from(onlineUsers));
     });
 
   } catch (error) {
