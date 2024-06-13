@@ -593,60 +593,22 @@ function MessagePage() {
 
       {/* Show All message */}
       <section className='h-[calc(100vh-128px)] overflow-x-hidden overflow-y-scroll scroolbar relative'>
-        Show All Messages
+       
 
-        {/* Upload Image Display */}
-        {message.imageUrl && (
-          <div className='w-full h-full bg-slate-700 bg-opacity-30 flex justify-center items-center rounded overflow-hidden'>
-            <div className='w-fit p-2 absolute top-5 right-0 cursor-pointer hover:text-red-600' onClick={handleClearUploadImage}>
-              <RxCross2 size={30} />
-            </div>
-            <div className='bg-white p-3'>
-              <img
-                src={message.imageUrl}
-                alt='uploadImage'
-                className='aspect-square  w-full max-w-sm m-2 object-scale-down'
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Upload Video Display */}
-        {message.videoUrl && (
-          <div className='w-full h-full bg-slate-700 bg-opacity-30 flex justify-center items-center rounded overflow-hidden'>
-            <div className='w-fit p-2 absolute top-5 right-0 cursor-pointer hover:text-red-600' onClick={handleClearUploadVideo}>
-              <RxCross2 size={30} />
-            </div>
-            <div className='bg-white p-3'>
-              <video
-                src={message.videoUrl}
-                alt='uploadVideo'
-                className='aspect-square w-full max-w-sm m-2 object-scale-down'
-                controls
-                muted
-                autoPlay
-              />
-            </div>
-          </div>
-        )}
-
-        {loading && (
-          <div className='w-full h-full flex justify-center items-center'>
-            <Loading />
-          </div>
-        )}
+        
 
         {/**all message show here */}
         <div className='flex flex-col gap-2 py-2 mx-2' ref={lastMessageRef}>
                     {
                       allMessage.map((msg,index)=>{
                         return(
-                          <div className={` p-1 py-1 rounded w-fit max-w-[280px] md:max-w-sm lg:max-w-md ${user._id === msg?.msgByUserId ? "ml-auto bg-teal-100" : "bg-white"}`}>
+                          <div className={`  p-1 py-1 rounded w-fit max-w-[280px] md:max-w-sm lg:max-w-md ${user._id === msg?.msgByUserId ? "ml-auto bg-teal-100" : "bg-white"}`}>
                             <div className='w-full relative'>
                               {
                                 msg?.imageUrl && (
                                   <img 
                                     src={msg?.imageUrl}
+                                    alt='sentImage'
                                     className='w-full h-full object-scale-down'
                                   />
                                 )
@@ -668,6 +630,47 @@ function MessagePage() {
                       })
                     }
                   </div>
+
+                  {/* Upload Image Display */}
+        {message.imageUrl && (
+          <div className='w-full h-full  sticky bottom-0  bg-slate-700 bg-opacity-30 flex justify-center items-center rounded overflow-hidden'>
+            <div className='w-fit p-2 absolute top-5 right-0 cursor-pointer hover:text-red-600' onClick={handleClearUploadImage}>
+              <RxCross2 size={30} />
+            </div>
+            <div className='bg-white p-3'>
+              <img
+                src={message.imageUrl}
+                alt='uploadImage'
+                className='aspect-square  w-full max-w-sm m-2 object-scale-down'
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Upload Video Display */}
+        {message.videoUrl && (
+          <div className='w-full h-full sticky bottom-0 bg-slate-700 bg-opacity-30 flex justify-center items-center rounded overflow-hidden'>
+            <div className='w-fit p-2 absolute top-5 right-0 cursor-pointer hover:text-red-600' onClick={handleClearUploadVideo}>
+              <RxCross2 size={30} />
+            </div>
+            <div className='bg-white p-3'>
+              <video
+                src={message.videoUrl}
+                alt='uploadVideo'
+                className='aspect-square w-full max-w-sm m-2 object-scale-down'
+                controls
+                muted
+                autoPlay
+              />
+            </div>
+          </div>
+        )}
+
+        {loading && (
+          <div className='w-full h-full sticky bottom-0 flex justify-center items-center'>
+            <Loading />
+          </div>
+        )}
 
       </section>
 
