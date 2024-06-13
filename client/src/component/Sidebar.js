@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { IoChatbubbleEllipsesSharp } from "react-icons/io5";
 import { FaUserPlus } from "react-icons/fa";
 import { CgLogOut } from "react-icons/cg";
@@ -7,12 +7,26 @@ import Avatar from "../component/Avatar";
 import {useSelector} from "react-redux"
 import EditUserDetails from './EditUserDetails';
 import SearchUser from './SearchUser';
+
 import { GoArrowUpLeft } from "react-icons/go";
+
 function Sidebar() {
   const user=useSelector(state=>state?.user)
   const [editUserOpen,setEditUserOpen]=useState(false)
   const[allUser,SetallUser]=useState([])
   const[opensearchUser,Setopensearch]=useState(false)
+  const socketConnection = useSelector(state => state.user?.socketConnection);
+  // const user = useSelector(state => state?.user);
+useEffect(()=>{
+ if(socketConnection)
+  {
+    socketConnection.emit('sidebar',user._id)
+    socketConnection.on('conversation',(data)=>{
+      console.log('conversation',data)
+    })
+  }
+},[socketConnection,user])
+
   return (
     <div className='w-full h-full grid grid-cols-[48px,1fr] bg-white'>
       <div className='bg-slate-100 w-12 h-full rounded-tr-lg py-5 text-slate-600 flex flex-col justify-between'>
