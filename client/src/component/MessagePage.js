@@ -354,7 +354,7 @@ function MessagePage() {
     const file = e.target.files[0];
     const uploadPhoto = await uploadFiles(file);
     setLoading(false);
-    alert("Video")
+    
     setOpenImageVideoUpload(false);
     setMessage(prev => ({
       ...prev,

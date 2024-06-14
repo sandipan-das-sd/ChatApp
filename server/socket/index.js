@@ -383,24 +383,29 @@ io.on('connection', async (socket) => {
     //sidebar
     socket.on('sidebar',async(currentUserId)=>{
       console.log("Current User",currentUserId)
-      const currentUserConversation=await ConversationModel.find({
-        "$or":[
-          {sender:currentUserId},
-          {receiver:currentUserId}
-        ]
-      }).sort({updatedAt:-1}).populate('messages').populate('sender').populate('receiver')
-      console.log( currentUserConversation)
-      const conversation=currentUserConversation.map((conv)=>{
-        const countUnseenMsg=conv.messages.reduce((preve,curr)=>preve+(curr.seen?0:1),0)
-        return {
-        _id:conv._id,
-        sender:conv?.sender,
-        receiver:conv?.receiver,
-        unseenMsg:countUnseenMsg,
-        lastMsg:conv.messages[conv?.messages?.length-1]
+      if(currentUserId)
+        {
+          const currentUserConversation=await ConversationModel.find({
+            "$or":[
+              {sender:currentUserId},
+              {receiver:currentUserId}
+            ]
+          }).sort({updatedAt:-1}).populate('messages').populate('sender').populate('receiver')
+          console.log( currentUserConversation)
+          const conversation=currentUserConversation.map((conv)=>{
+            const countUnseenMsg=conv.messages.reduce((preve,curr)=>preve+(curr.seen?0:1),0)
+          
+            return {
+            _id:conv._id,
+            sender:conv?.sender,
+            receiver:conv?.receiver,
+            unseenMsg:countUnseenMsg,
+            lastMsg:conv.messages[conv?.messages?.length-1]
+            }
+          })
+          socket.emit('conversation',conversation)
         }
-      })
-      socket.emit('conversation',conversation)
+    
     })
     // Handle disconnect
     socket.on("disconnect", () => {

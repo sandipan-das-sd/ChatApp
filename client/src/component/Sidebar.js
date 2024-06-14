@@ -1,31 +1,58 @@
 import React, { useEffect, useState } from 'react';
 import { IoChatbubbleEllipsesSharp } from "react-icons/io5";
-import { FaUserPlus } from "react-icons/fa";
+import { FaImage, FaUserPlus } from "react-icons/fa";
 import { CgLogOut } from "react-icons/cg";
 import { NavLink } from 'react-router-dom';
 import Avatar from "../component/Avatar";
-import {useSelector} from "react-redux"
+import { useSelector } from "react-redux"
 import EditUserDetails from './EditUserDetails';
 import SearchUser from './SearchUser';
+import { FaVideo} from "react-icons/fa"
 
 import { GoArrowUpLeft } from "react-icons/go";
 
 function Sidebar() {
-  const user=useSelector(state=>state?.user)
-  const [editUserOpen,setEditUserOpen]=useState(false)
-  const[allUser,SetallUser]=useState([])
-  const[opensearchUser,Setopensearch]=useState(false)
+  const user = useSelector(state => state?.user)
+  const [editUserOpen, setEditUserOpen] = useState(false)
+  const [allUser, SetallUser] = useState([])
+  const [opensearchUser, Setopensearch] = useState(false)
   const socketConnection = useSelector(state => state.user?.socketConnection);
   // const user = useSelector(state => state?.user);
-useEffect(()=>{
- if(socketConnection)
-  {
-    socketConnection.emit('sidebar',user._id)
-    socketConnection.on('conversation',(data)=>{
-      console.log('conversation',data)
-    })
-  }
-},[socketConnection,user])
+  useEffect(() => {
+    if (socketConnection) {
+      socketConnection.emit('sidebar', user._id)
+      socketConnection.on('conversation', (data) => {
+        console.log('conversation', data)
+        const conversationUserData = data.map((conversationUser, index) => {
+          if (conversationUser?.sender?._id === conversationUser?.receiver?._id) {
+            return {
+              ...conversationUser,
+              userDetails: conversationUser?.sender
+
+            }
+
+          }
+          else if (conversationUser?.receiver?._id !== user?._id) {
+            return {
+              ...conversationUser,
+              userDetails: conversationUser?.receiver
+
+            }
+          }
+          else {
+            return {
+              ...conversationUser,
+              userDetails: conversationUser.sender
+
+            }
+          }
+
+
+        })
+        SetallUser(conversationUserData)
+      })
+    }
+  }, [socketConnection, user])
 
   return (
     <div className='w-full h-full grid grid-cols-[48px,1fr] bg-white'>
@@ -41,9 +68,9 @@ useEffect(()=>{
             <IoChatbubbleEllipsesSharp size={25} />
           </NavLink>
           <div
-          onClick={()=>Setopensearch(true)}
+            onClick={() => Setopensearch(true)}
             to="/user"
-           
+
             className={({ isActive }) =>
               `w-12 h-12 flex justify-center items-center cursor-pointer hover:bg-slate-200 rounded ${isActive ? 'bg-slate-200' : ''}`
             }
@@ -54,17 +81,17 @@ useEffect(()=>{
         </div>
 
         <div className='flex flex-col items-center gap-4'>
-          <button className='flex justify-center items-center' title={user.name} onClick={()=>{
+          <button className='flex justify-center items-center' title={user.name} onClick={() => {
             setEditUserOpen(true)
           }}>
             <Avatar width={35} height={35}
-            name={user.name}
-            ImageUrl={user?.profile_pic}
-            userId={user._id}
+              name={user.name}
+              ImageUrl={user?.profile_pic}
+              userId={user._id}
             />
 
           </button>
-          <button 
+          <button
             className='w-12 h-12 flex justify-center items-center cursor-pointer hover:bg-slate-200 rounded'
             title='logout'
           >
@@ -78,38 +105,94 @@ useEffect(()=>{
       <div className='w-full '>
         <div className='h-16 flex items-center'>
           <h2 className='text-xl font-bold p-4 text-slate-800  '> Message</h2>
-          </div>
-          <div className='bg-slate-200 p-[0.5px] '>
+        </div>
+        <div className='bg-slate-200 p-[0.5px] '>
           <div className=' h-[calc(100vh-65px)]  overflow-x-hidden overflow-y-auto    scroolbar ' >
             {
-              allUser.length===0 &&(
+              allUser.length === 0 && (
                 <div className='mt-12 sm:mt-20'>
                   <div className='flex justify-center items-center my-4 text-slate-500'>
-                  <GoArrowUpLeft 
-                  size={50}
-                  />
-                    </div>
-                    <p className='text-lg text-center text-slate-600 '> Explore users to start converation</p>
+                    <GoArrowUpLeft
+                      size={50}
+                    />
                   </div>
+                  <p className='text-lg text-center text-slate-600 '> Explore users to start converation</p>
+                </div>
               )
             }
+            {
+              allUser.map((conv, index) => (
+                <div key={conv?._id} className='flex items-center gap-2'>
+                  <div>
+                    <Avatar
+                      ImageUrl={conv?.userDetails?.profile_pic}
+                      name={conv?.userDetails?.name}
+                      width={40}
+                      height={40}
+                    />
+                  </div>
+                  <div>
+                    <h3 className=' text-ellipsis line-clamp-1 '>{conv?.userDetails?.name}</h3>
+                    <div className='text-slate-500 text-xs'>
+                      <div className='flex items-center gap-1'>
+                        {
+                          conv?.lastMsg?.imageUrl  &&(
+                             <div className='flex items-center gap-1'> 
+                              <span> <FaImage/></span>
+                             
+                             {
+                              !conv.lastMsg.text &&
+                              <span>Image</span>
+                             }
+                              
+                              </div>
+                              
+                          )
+                        }
+
+{
+                          conv?.lastMsg?.videoUrl  &&(
+                             <div className='flex items-center gap-1'> 
+                              <span> <FaVideo/></span>
+                              {
+                              !conv.lastMsg.text &&
+                              <span>Video</span>
+                             }
+                              </div>
+                              
+                          )
+                        }
+                        </div>
+                      
+                        <p>{conv.lastMsg ? conv.lastMsg.text : ''}</p>
+                     
+                    </div>
+
+                  </div>
+                </div>
+              ))
+            }
+
+
+
+
           </div>
-          </div>
+        </div>
       </div>
-        {/**Edit user deails */}
-        {
-          editUserOpen &&(
-            <EditUserDetails onClose={()=>{
-              setEditUserOpen(false)
-            }}
+      {/**Edit user deails */}
+      {
+        editUserOpen && (
+          <EditUserDetails onClose={() => {
+            setEditUserOpen(false)
+          }}
             user={user}
-            />
-          )
-        }
+          />
+        )
+      }
       {/* Search User*/}
       {
-        opensearchUser&&(
-          <SearchUser onClose={()=>Setopensearch(false)}/>
+        opensearchUser && (
+          <SearchUser onClose={() => Setopensearch(false)} />
         )
       }
     </div>
