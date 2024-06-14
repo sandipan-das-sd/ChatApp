@@ -122,26 +122,26 @@ function Sidebar() {
             }
             {
               allUser.map((conv, index) => (
-                <div key={conv?._id} className='flex items-center gap-2'>
+                <div key={conv?._id} className='flex items-center py-3 px-2  gap-2 border border-transparent hover:border-primary rounded hover:bg-slate-100 cursor-pointer '>
                   <div>
                     <Avatar
                       ImageUrl={conv?.userDetails?.profile_pic}
                       name={conv?.userDetails?.name}
-                      width={40}
-                      height={40}
+                      width={35}
+                      height={35}
                     />
                   </div>
                   <div>
-                    <h3 className=' text-ellipsis line-clamp-1 '>{conv?.userDetails?.name}</h3>
-                    <div className='text-slate-500 text-xs'>
+                    <h3 className=' text-ellipsis line-clamp-1 font-semibold text-base  '>{conv?.userDetails?.name}</h3>
+                    <div className='text-slate-500 text-xs flex items-center gap-1 '>
                       <div className='flex items-center gap-1'>
                         {
                           conv?.lastMsg?.imageUrl  &&(
                              <div className='flex items-center gap-1'> 
                               <span> <FaImage/></span>
-                             
+                               
                              {
-                              !conv.lastMsg.text &&
+                              !conv?.lastMsg?.text &&
                               <span>Image</span>
                              }
                               
@@ -155,7 +155,7 @@ function Sidebar() {
                              <div className='flex items-center gap-1'> 
                               <span> <FaVideo/></span>
                               {
-                              !conv.lastMsg.text &&
+                              !conv?.lastMsg?.text &&
                               <span>Video</span>
                              }
                               </div>
@@ -163,13 +163,20 @@ function Sidebar() {
                           )
                         }
                         </div>
+                       
                       
                         <p>{conv.lastMsg ? conv.lastMsg.text : ''}</p>
                      
                     </div>
+                    
+                   
 
                   </div>
+                
+                 <p className='text-xs w-6 h-6 flex justify-center items-center ml-auto p-1 bg-primary text-white font-semibold rounded-full'>{conv.unseenMsg}</p>
+                      
                 </div>
+                
               ))
             }
 
