@@ -136,25 +136,40 @@ io.on('connection', async (socket) => {
 
     })
 
-    socket.on('seen',async(msgByUserId)=>{
-      let conversation = await ConversationModel.findOne({
-        "$or": [
-          { sender: user?._id, receiver: msgByUserId },
-          { sender: msgByUserId, receiver: user?._id }
-        ]
-      });
-      const conversationMessageId=conversation?.messages ||[]
-      const updateMessages=await MessageModel.updateMany(
-        {_id:{"$in":conversationMessageId},  msgByUserId:msgByUserId},
-        {"$set":{seen:true}}
-      )
-
-      const conversationReceiver= await getConverSation(msgByUserId)
-      const conversationSender= await getConverSation(user?._id?.toString())
-      io.to(user?._id?.toString()).emit('conversation',conversationSender );
-      io.to(msgByUserId ).emit('conversation',conversationReceiver );
-
+    socket.on('seen', async (msgByUserId) => {
+      try {
+        // Find the conversation between the current user and msgByUserId
+        let conversation = await ConversationModel.findOne({
+          "$or": [
+            { sender: user?._id, receiver: msgByUserId },
+            { sender: msgByUserId, receiver: user?._id }
+          ]
+        });
+    
+        if (conversation) {
+          const conversationMessageIds = conversation.messages || [];
+          
+          // Update the messages in the conversation to mark them as seen
+          await MessageModel.updateMany(
+            { _id: { "$in": conversationMessageIds }, msgByUserId: msgByUserId },
+            { "$set": { seen: true } }
+          );
+    
+          // Get the updated conversation for both users
+          const conversationReceiver = await getConversation(msgByUserId);
+          const conversationSender = await getConversation(user?._id.toString());
+    
+          // Emit the updated conversations to both users
+          io.to(user?._id.toString()).emit('conversation', conversationSender);
+          io.to(msgByUserId).emit('conversation', conversationReceiver);
+        } else {
+          console.log("Conversation not found between users", user?._id, "and", msgByUserId);
+        }
+      } catch (error) {
+        console.error("Error in 'seen' event handler:", error);
+      }
     });
+    
   
     // Handle disconnect
     socket.on("disconnect", () => {
