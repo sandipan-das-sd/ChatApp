@@ -2,14 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { IoChatbubbleEllipsesSharp } from "react-icons/io5";
 import { FaImage, FaUserPlus } from "react-icons/fa";
 import { CgLogOut } from "react-icons/cg";
-import { Link, NavLink } from 'react-router-dom';
+import {  NavLink, useNavigate } from 'react-router-dom';
 import Avatar from "../component/Avatar";
-import { useSelector } from "react-redux"
+import { useDispatch, useSelector } from "react-redux"
 import EditUserDetails from './EditUserDetails';
 import SearchUser from './SearchUser';
 import { FaVideo } from "react-icons/fa"
 
 import { GoArrowUpLeft } from "react-icons/go";
+import { logout } from '../redux/userSlice';
+import toast from 'react-hot-toast';
 
 function Sidebar() {
   const user = useSelector(state => state?.user)
@@ -17,6 +19,8 @@ function Sidebar() {
   const [allUser, SetallUser] = useState([])
   const [opensearchUser, Setopensearch] = useState(false)
   const socketConnection = useSelector(state => state.user?.socketConnection);
+  const dispatch=useDispatch()
+  const navigate=useNavigate()
   // const user = useSelector(state => state?.user);
   useEffect(() => {
     if (socketConnection) {
@@ -53,6 +57,12 @@ function Sidebar() {
       })
     }
   }, [socketConnection, user])
+  const handelLogout=()=>{
+    dispatch(logout)
+    toast.success("Logged Out Succesfully!!")
+    navigate('/email')
+    localStorage.clear()
+  }
 
   return (
     <div className='w-full h-full grid grid-cols-[48px,1fr] bg-white'>
@@ -92,7 +102,7 @@ function Sidebar() {
 
           </button>
           <button
-            className='w-12 h-12 flex justify-center items-center cursor-pointer hover:bg-slate-200 rounded'
+            className='w-12 h-12 flex justify-center items-center cursor-pointer hover:bg-slate-200 rounded' onClick={handelLogout}
             title='logout'
           >
             <span className='-ml-2'>
@@ -165,16 +175,23 @@ function Sidebar() {
                       </div>
 
 
-                      <p>{conv.lastMsg ? conv.lastMsg.text : ''}</p>
+                      <p className=' text-ellipsis line-clamp-1'>{conv.lastMsg ? conv.lastMsg.text : ''}</p>
 
                     </div>
 
 
 
                   </div>
-
-                  <p className='text-xs w-6 h-6 flex justify-center items-center ml-auto p-1 bg-primary text-white font-semibold rounded-full'>{conv.unseenMsg}</p>
+                  {
+                   Boolean( conv.unseenMsg) &&(
+                      <p className='text-xs w-6 h-6 flex justify-center items-center ml-auto p-1 bg-primary text-white font-semibold rounded-full'>{conv.unseenMsg}</p>
                           
+
+                    )
+
+                  }
+
+                 
                 </NavLink>
 
               ))
