@@ -68,7 +68,7 @@
 // //   });
 
 
-  
+
 // //   // New message
 // //   socket.on('new message', async(data) => {
 
@@ -90,7 +90,7 @@
 // //         conversation=await createConversation.save()
 // //       }
 // //       const message=await MessageModel({
-        
+
 // //         text: data.text,
 // //         imageUrl: data.imageUrl,
 // //         videoUrl: data.videoUrl,
@@ -102,7 +102,7 @@
 // //     // console.log("Convrsation",conversation)
 // //     // console.log("Sender Id:-",data.sender)
 // //     // console.log("receiver Id :-",data.receiver)
-  
+
 
 // //     const updateConversation = await ConversationModel.updateOne({ _id : conversation?._id },{
 // //       "$push" : { messages : saveMessage?._id }
@@ -197,7 +197,7 @@
 //   });
 
 
-  
+
 //   // New message
 //   socket.on('new message', async(data) => {
 
@@ -219,7 +219,7 @@
 //         conversation=await createConversation.save()
 //       }
 //       const message=await MessageModel({
-        
+
 //         text: data.text,
 //         imageUrl: data.imageUrl,
 //         videoUrl: data.videoUrl,
@@ -232,7 +232,7 @@
 //     // console.log("Sender Id:-",data.sender)
 //     // console.log("receiver Id :-",data.receiver)
 //     // const updateConversation=await ConversationModel.updateOne({
-      
+
 //     //   _id:conversation?._id,
 //     //   "$push":{messages:saveMessage?._id}
 //     // })
@@ -270,7 +270,7 @@ const dotenv = require('dotenv');
 const getUserDetailsfromToken = require('../helpers/getUserDeatilsFromToken');
 const UserModel = require("../db/models/UserModel");
 const { ConversationModel, MessageModel } = require("../db/models/ConversationModel");
-
+const getConverSation=require('../helpers/getConversation')
 dotenv.config();
 
 const app = express();
@@ -377,35 +377,25 @@ io.on('connection', async (socket) => {
         ]
       }).populate('messages').sort({ updatedAt: -1 });
 
-      io.to(data?.sender).emit('message', getConversationMessage.messages);
-      io.to(data?.receiver).emit('message', getConversationMessage.messages);
+      io.to(data?.sender).emit('message', getConversationMessage?.messages|| []);
+      io.to(data?.receiver).emit('message', getConversationMessage?.messages || []);
+
+      //send conversation
+      const conversationSender= await getConverSation(data?.sender)
+
+      const conversationReceiver= await getConverSation(data?.receiver)
+      // socket.emit('conversation', conversationSidebar)
+      io.to(data?.sender).emit('conversation',conversationSender );
+      io.to(data?.receiver).emit('conversation',conversationReceiver );
+
     });
     //sidebar
-    socket.on('sidebar',async(currentUserId)=>{
-      console.log("Current User",currentUserId)
-      if(currentUserId)
-        {
-          const currentUserConversation=await ConversationModel.find({
-            "$or":[
-              {sender:currentUserId},
-              {receiver:currentUserId}
-            ]
-          }).sort({updatedAt:-1}).populate('messages').populate('sender').populate('receiver')
-          console.log( currentUserConversation)
-          const conversation=currentUserConversation.map((conv)=>{
-            const countUnseenMsg=conv.messages.reduce((preve,curr)=>preve+(curr.seen?0:1),0)
-          
-            return {
-            _id:conv._id,
-            sender:conv?.sender,
-            receiver:conv?.receiver,
-            unseenMsg:countUnseenMsg,
-            lastMsg:conv.messages[conv?.messages?.length-1]
-            }
-          })
-          socket.emit('conversation',conversation)
-        }
-    
+    socket.on('sidebar', async (currentUserId) => {
+      console.log("Current User", currentUserId)
+      const conversation= await getConverSation(currentUserId)
+      socket.emit('conversation', conversation)
+   
+
     })
     // Handle disconnect
     socket.on("disconnect", () => {

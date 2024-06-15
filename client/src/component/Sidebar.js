@@ -2,12 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { IoChatbubbleEllipsesSharp } from "react-icons/io5";
 import { FaImage, FaUserPlus } from "react-icons/fa";
 import { CgLogOut } from "react-icons/cg";
-import { NavLink } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import Avatar from "../component/Avatar";
 import { useSelector } from "react-redux"
 import EditUserDetails from './EditUserDetails';
 import SearchUser from './SearchUser';
-import { FaVideo} from "react-icons/fa"
+import { FaVideo } from "react-icons/fa"
 
 import { GoArrowUpLeft } from "react-icons/go";
 
@@ -122,7 +122,7 @@ function Sidebar() {
             }
             {
               allUser.map((conv, index) => (
-                <div key={conv?._id} className='flex items-center py-3 px-2  gap-2 border border-transparent hover:border-primary rounded hover:bg-slate-100 cursor-pointer '>
+                <NavLink to={"/"+conv?.userDetails?._id} key={conv?._id} className='flex items-center py-3 px-2  gap-2 border border-transparent hover:border-primary rounded hover:bg-slate-100 cursor-pointer '>
                   <div>
                     <Avatar
                       ImageUrl={conv?.userDetails?.profile_pic}
@@ -136,47 +136,47 @@ function Sidebar() {
                     <div className='text-slate-500 text-xs flex items-center gap-1 '>
                       <div className='flex items-center gap-1'>
                         {
-                          conv?.lastMsg?.imageUrl  &&(
-                             <div className='flex items-center gap-1'> 
-                              <span> <FaImage/></span>
-                               
-                             {
-                              !conv?.lastMsg?.text &&
-                              <span>Image</span>
-                             }
-                              
-                              </div>
-                              
+                          conv?.lastMsg?.imageUrl && (
+                            <div className='flex items-center gap-1'>
+                              <span> <FaImage /></span>
+
+                              {
+                                !conv?.lastMsg?.text &&
+                                <span>Image</span>
+                              }
+
+                            </div>
+
                           )
                         }
 
-{
-                          conv?.lastMsg?.videoUrl  &&(
-                             <div className='flex items-center gap-1'> 
-                              <span> <FaVideo/></span>
+                        {
+                          conv?.lastMsg?.videoUrl && (
+                            <div className='flex items-center gap-1'>
+                              <span> <FaVideo /></span>
                               {
-                              !conv?.lastMsg?.text &&
-                              <span>Video</span>
-                             }
-                              </div>
-                              
+                                !conv?.lastMsg?.text &&
+                                <span>Video</span>
+                              }
+                            </div>
+
                           )
                         }
-                        </div>
-                       
-                      
-                        <p>{conv.lastMsg ? conv.lastMsg.text : ''}</p>
-                     
+                      </div>
+
+
+                      <p>{conv.lastMsg ? conv.lastMsg.text : ''}</p>
+
                     </div>
-                    
-                   
+
+
 
                   </div>
-                
-                 <p className='text-xs w-6 h-6 flex justify-center items-center ml-auto p-1 bg-primary text-white font-semibold rounded-full'>{conv.unseenMsg}</p>
-                      
-                </div>
-                
+
+                  <p className='text-xs w-6 h-6 flex justify-center items-center ml-auto p-1 bg-primary text-white font-semibold rounded-full'>{conv.unseenMsg}</p>
+                          
+                </NavLink>
+
               ))
             }
 
