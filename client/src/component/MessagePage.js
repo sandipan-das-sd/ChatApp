@@ -331,7 +331,7 @@ function MessagePage() {
   const [allMessage, setAllMessage] = useState([])
   const [timer, setTimer] = useState(0);
   const timerRef = useRef(null);
-  
+
   //for Currenrmessage showing to the top user have not to scrool
   const lastMessageRef = useRef(null);
 
@@ -354,7 +354,7 @@ function MessagePage() {
     const file = e.target.files[0];
     const uploadPhoto = await uploadFiles(file);
     setLoading(false);
-    
+
     setOpenImageVideoUpload(false);
     setMessage(prev => ({
       ...prev,
@@ -409,7 +409,7 @@ function MessagePage() {
     if (socketConnection) {
       console.log('Socket connection established:', socketConnection.id);
       socketConnection.emit('message-page', params.userId);
-      socketConnection.emit('seen',params.userId)
+      socketConnection.emit('seen', params.userId)
 
       const handleMessageUser = (data) => {
         setDataUser(data);
@@ -594,13 +594,13 @@ function MessagePage() {
 
       {/* Show All message */}
       <section className='h-[calc(100vh-128px)] overflow-x-hidden overflow-y-scroll scroolbar relative'>
-       
 
-        
+
+
 
         {/**all message show here */}
         <div className='flex flex-col gap-2 py-2 mx-2' ref={lastMessageRef}>
-                    {/* {
+          {/* {
                       allMessage.map((msg,index)=>{
                         return(
                           <div className={`  p-1 py-1 rounded w-fit max-w-[280px] md:max-w-sm lg:max-w-md ${user._id === msg?.msgByUserId ? "ml-auto bg-teal-100" : "bg-white"}`}>
@@ -632,67 +632,67 @@ function MessagePage() {
                     } */}
 
 
-{
-  allMessage.map((msg, index) => {
-    const isSender = user._id === msg?.msgByUserId;
-    return (
-      <div key={index} className={`p-1 py-1 rounded w-fit max-w-[280px] md:max-w-sm lg:max-w-md ${isSender ? "ml-auto bg-teal-100" : "bg-white"}`}>
-        <div className='w-full relative'>
-          {msg?.imageUrl && (
-            <img
-              src={msg?.imageUrl}
-              alt='sentImage'
-              className='w-full h-full object-scale-down'
-            />
-          )}
-          {msg?.videoUrl && (
-            <video
-              src={msg.videoUrl}
-              className='w-full h-full object-scale-down'
-              controls
-            />
-          )}
-        </div>
-        <p className='px-2'>{msg.text}</p>
-        <div className='flex items-center justify-end space-x-1'>
-          <p className='text-xs'>{moment(msg.createdAt).format('hh:mm')}</p>
-          {isSender && (
-            <div className='flex items-center'>
-              {msg.seen ? (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4 text-blue-500"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 13l4 4L23 7" />
-                </svg>
-              ) : (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4 text-gray-500"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  })
-}
-
+          {
+            allMessage.map((msg, index) => {
+              const isSender = user._id === msg?.msgByUserId;
+              return (
+                <div key={index} className={`p-1 py-1 rounded w-fit max-w-[280px] md:max-w-sm lg:max-w-md ${isSender ? "ml-auto bg-teal-100" : "bg-white"}`}>
+                  <div className='w-full relative'>
+                    {msg?.imageUrl && (
+                      <img
+                        src={msg?.imageUrl}
+                        alt='sentImage'
+                        className='w-full h-full object-scale-down'
+                      />
+                    )}
+                    {msg?.videoUrl && (
+                      <video
+                        src={msg.videoUrl}
+                        className='w-full h-full object-scale-down'
+                        controls
+                      />
+                    )}
                   </div>
+                  <p className='px-2'>{msg.text}</p>
+                  <div className='flex items-center justify-end space-x-1'>
+                    <p className='text-xs'>{moment(msg.createdAt).format('hh:mm')}</p>
+                    {isSender && (
+                      <div className='flex items-center'>
+                        {msg.seen ? (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-4 w-4 text-blue-500"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 13l4 4L23 7" />
+                          </svg>
+                        ) : (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-4 w-4 text-gray-500"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })
+          }
 
-                  {/* Upload Image Display */}
+        </div>
+
+        {/* Upload Image Display */}
         {message.imageUrl && (
           <div className='w-full h-full  sticky bottom-0  bg-slate-700 bg-opacity-30 flex justify-center items-center rounded overflow-hidden'>
             <div className='w-fit p-2 absolute top-5 right-0 cursor-pointer hover:text-red-600' onClick={handleClearUploadImage}>
