@@ -600,7 +600,7 @@ function MessagePage() {
 
         {/**all message show here */}
         <div className='flex flex-col gap-2 py-2 mx-2' ref={lastMessageRef}>
-                    {
+                    {/* {
                       allMessage.map((msg,index)=>{
                         return(
                           <div className={`  p-1 py-1 rounded w-fit max-w-[280px] md:max-w-sm lg:max-w-md ${user._id === msg?.msgByUserId ? "ml-auto bg-teal-100" : "bg-white"}`}>
@@ -629,7 +629,67 @@ function MessagePage() {
                           </div>
                         )
                       })
-                    }
+                    } */}
+
+
+{
+  allMessage.map((msg, index) => {
+    const isSender = user._id === msg?.msgByUserId;
+    return (
+      <div key={index} className={`p-1 py-1 rounded w-fit max-w-[280px] md:max-w-sm lg:max-w-md ${isSender ? "ml-auto bg-teal-100" : "bg-white"}`}>
+        <div className='w-full relative'>
+          {msg?.imageUrl && (
+            <img
+              src={msg?.imageUrl}
+              alt='sentImage'
+              className='w-full h-full object-scale-down'
+            />
+          )}
+          {msg?.videoUrl && (
+            <video
+              src={msg.videoUrl}
+              className='w-full h-full object-scale-down'
+              controls
+            />
+          )}
+        </div>
+        <p className='px-2'>{msg.text}</p>
+        <div className='flex items-center justify-end space-x-1'>
+          <p className='text-xs'>{moment(msg.createdAt).format('hh:mm')}</p>
+          {isSender && (
+            <div className='flex items-center'>
+              {msg.seen ? (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4 text-blue-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 13l4 4L23 7" />
+                </svg>
+              ) : (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4 text-gray-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  })
+}
+
                   </div>
 
                   {/* Upload Image Display */}
