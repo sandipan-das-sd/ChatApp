@@ -294,7 +294,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { Link, useParams } from 'react-router-dom';
 import { BsThreeDotsVertical } from "react-icons/bs";
-import { FaAngleLeft, FaRegImage, FaVideo, FaPlus, FaMicrophone, FaStop, FaTrash } from "react-icons/fa";
+import { FaAngleLeft, FaRegImage, FaVideo, FaPlus, FaMicrophone, FaTrash } from "react-icons/fa";
 import { RxCross2 } from "react-icons/rx";
 import Avatar from "./Avatar";
 import uploadFiles from '../helpers/uploadFiles';
@@ -465,7 +465,7 @@ function MessagePage() {
   // };
 
   const handleOnChange = (e) => {
-    const { name, value } = e.target;
+    const {  value } = e.target;
     setMessage(prev => ({
       ...prev,
       text: value
@@ -543,13 +543,13 @@ function MessagePage() {
       startRecording();
     }
   };
-  const handelShowRecordTime = () => {
-    function constRecordtimeDiv() {
-      <div className='fixed bottom-2 right-10 transform -translate-x-1/2  p-3'>
-        Recording: {Math.floor(timer / 60)}:{timer % 60 < 10 ? '0' : ''}{timer % 60}
-      </div>
-    }
-  }
+  // const handelShowRecordTime = () => {
+  //   function constRecordtimeDiv() {
+  //     <div className='fixed bottom-2 right-10 transform -translate-x-1/2  p-3'>
+  //       Recording: {Math.floor(timer / 60)}:{timer % 60 < 10 ? '0' : ''}{timer % 60}
+  //     </div>
+  //   }
+  // }
   function formatLastSeen(lastSeen) {
     const now = moment();
     const lastSeenMoment = moment(lastSeen);
