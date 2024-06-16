@@ -410,7 +410,7 @@ function MessagePage() {
       console.log('Socket connection established:', socketConnection.id);
       socketConnection.emit('message-page', params.userId);
       socketConnection.emit('seen', params.userId)
-     
+
 
       const handleMessageUser = (data) => {
         setDataUser(data);
@@ -465,7 +465,7 @@ function MessagePage() {
   // };
 
   const handleOnChange = (e) => {
-    const {  value } = e.target;
+    const { value } = e.target;
     setMessage(prev => ({
       ...prev,
       text: value
@@ -553,7 +553,7 @@ function MessagePage() {
   function formatLastSeen(lastSeen) {
     const now = moment();
     const lastSeenMoment = moment(lastSeen);
-    
+
     if (now.diff(lastSeenMoment, 'days') === 0) {
       // Today
       return `today at ${lastSeenMoment.format('LT')}`;
@@ -600,25 +600,25 @@ function MessagePage() {
               {dataUser.online ? <span className='text-primary'>Online</span> : <span className='text slate-400'>Offline</span>}
             </p> */}
 
-{/* <p className='-my-2 text-sm'>
+            {/* <p className='-my-2 text-sm'>
   {dataUser.online ? <span className='text-primary'>Online</span> : (
     dataUser.lastSeen ? <span className='text-slate-400'>Last seen {moment(dataUser.lastSeen).fromNow()}</span> : <span className='text-slate-400'>Offline</span>
   )}
 </p> */}
 
-<p className='-my-2 text-sm'>
-  {dataUser.online ? (
-    <span className='text-primary'>Online</span>
-  ) : (
-    dataUser.lastSeen ? (
-      <span className='text-slate-400'>
-        Last seen {formatLastSeen(dataUser.lastSeen)}
-      </span>
-    ) : (
-      <span className='text-slate-400'>Offline</span>
-    )
-  )}
-</p>
+            <p className='-my-2 text-sm'>
+              {dataUser.online ? (
+                <span className='text-primary'>Online</span>
+              ) : (
+                dataUser.lastSeen ? (
+                  <span className='text-slate-400'>
+                    Last seen {formatLastSeen(dataUser.lastSeen)}
+                  </span>
+                ) : (
+                  <span className='text-slate-400'>Offline</span>
+                )
+              )}
+            </p>
 
 
 

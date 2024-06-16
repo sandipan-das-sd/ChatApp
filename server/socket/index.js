@@ -122,7 +122,7 @@
 //       const conversationSender= await getConverSation(data?.sender)
 
 //       const conversationReceiver= await getConverSation(data?.receiver)
-     
+
 //       io.to(data?.sender).emit('conversation',conversationSender );
 //       io.to(data?.receiver).emit('conversation',conversationReceiver );
 
@@ -132,7 +132,7 @@
 //       console.log("Current User", currentUserId)
 //       const conversation= await getConverSation(currentUserId)
 //       socket.emit('conversation', conversation)
-   
+
 
 //     })
 
@@ -145,20 +145,20 @@
 //             { sender: msgByUserId, receiver: user?._id }
 //           ]
 //         });
-    
+
 //         if (conversation) {
 //           const conversationMessageIds = conversation.messages || [];
-          
+
 //           // Update the messages in the conversation to mark them as seen
 //           await MessageModel.updateMany(
 //             { _id: { "$in": conversationMessageIds }, msgByUserId: msgByUserId },
 //             { "$set": { seen: true } }
 //           );
-    
+
 //           // Get the updated conversation for both users
 //           const conversationReceiver = await getConversation(msgByUserId);
 //           const conversationSender = await getConversation(user?._id.toString());
-    
+
 //           // Emit the updated conversations to both users
 //           io.to(user?._id.toString()).emit('conversation', conversationSender);
 //           io.to(msgByUserId).emit('conversation', conversationReceiver);
@@ -169,8 +169,8 @@
 //         console.error("Error in 'seen' event handler:", error);
 //       }
 //     });
-    
-  
+
+
 //     // Handle disconnect
 //     socket.on("disconnect", () => {
 //       console.log("Disconnected user", socket.id);
@@ -227,10 +227,10 @@ io.on('connection', async (socket) => {
       socket.disconnect(true);
       return;
     }
-   // Update last seen timestamp
+    // Update last seen timestamp
     await UserModel.findByIdAndUpdate(user._id, { lastSeen: new Date() });
     const updatedUser = await UserModel.findById(user._id);
-console.log("User last seen updated:", updatedUser.lastSeen);
+    console.log("User last seen updated:", updatedUser.lastSeen);
     // Create a room
     socket.join(user?._id.toString());
     onlineUsers.add(user?._id.toString());
@@ -252,7 +252,7 @@ console.log("User last seen updated:", updatedUser.lastSeen);
         };
         socket.emit('message-user', payload);
         console.log(payload);
-          console.log("Emitted user data with lastSeen:", payload.lastSeen);
+        console.log("Emitted user data with lastSeen:", payload.lastSeen);
 
         // Get previous messages
         const getConversationMessage = await ConversationModel.findOne({
@@ -271,7 +271,7 @@ console.log("User last seen updated:", updatedUser.lastSeen);
     // New message
     socket.on('new message', async (data) => {
       // Update last seen timestamp
-  await UserModel.findByIdAndUpdate(data?.msgByUserId, { lastSeen: new Date() });
+      await UserModel.findByIdAndUpdate(data?.msgByUserId, { lastSeen: new Date() });
       let conversation = await ConversationModel.findOne({
         "$or": [
           { sender: data?.sender, receiver: data?.receiver },
@@ -313,7 +313,7 @@ console.log("User last seen updated:", updatedUser.lastSeen);
       // Send updated conversation
       const conversationSender = await getConversation(data?.sender);
       const conversationReceiver = await getConversation(data?.receiver);
-     
+
       io.to(data?.sender).emit('conversation', conversationSender);
       io.to(data?.receiver).emit('conversation', conversationReceiver);
     });
@@ -338,7 +338,7 @@ console.log("User last seen updated:", updatedUser.lastSeen);
 
         if (conversation) {
           const conversationMessageIds = conversation.messages || [];
-          
+
           // Update the messages in the conversation to mark them as seen
           await MessageModel.updateMany(
             { _id: { "$in": conversationMessageIds }, msgByUserId: msgByUserId },
@@ -362,41 +362,41 @@ console.log("User last seen updated:", updatedUser.lastSeen);
 
     // Handle disconnect
     // Handle disconnect
-// Handle disconnect
-socket.on("disconnect", async () => {
-  try {
-    console.log("Disconnected user", socket.id);
-    onlineUsers.delete(user._id.toString());
-    io.emit("Online User", Array.from(onlineUsers));
-    
-    // Update lastSeen in the database
-    await UserModel.findByIdAndUpdate(user._id, { lastSeen: new Date() });
+    // Handle disconnect
+    socket.on("disconnect", async () => {
+      try {
+        console.log("Disconnected user", socket.id);
+        onlineUsers.delete(user._id.toString());
+        io.emit("Online User", Array.from(onlineUsers));
 
-    // Fetch updated user details
-    const updatedUser = await UserModel.findById(user._id);
-    console.log("User last seen updated:", updatedUser.lastSeen);
+        // Update lastSeen in the database
+        await UserModel.findByIdAndUpdate(user._id, { lastSeen: new Date() });
 
-    // Emit updated user data with correct lastSeen timestamp
-    const payload = {
-      _id: updatedUser._id,
-      name: updatedUser.name,
-      email: updatedUser.email,
-      profile_pic: updatedUser.profile_pic,
-      online: false, // Since the user is now disconnected
-      lastSeen: updatedUser.lastSeen
-    };
-    socket.emit('message-user', payload);
-    console.log("Emitted user data with lastSeen:", payload.lastSeen);
+        // Fetch updated user details
+        const updatedUser = await UserModel.findById(user._id);
+        console.log("User last seen updated:", updatedUser.lastSeen);
 
-    // Emit online user list
-    io.emit("Online User", Array.from(onlineUsers));
+        // Emit updated user data with correct lastSeen timestamp
+        const payload = {
+          _id: updatedUser._id,
+          name: updatedUser.name,
+          email: updatedUser.email,
+          profile_pic: updatedUser.profile_pic,
+          online: false, // Since the user is now disconnected
+          lastSeen: updatedUser.lastSeen
+        };
+        socket.emit('message-user', payload);
+        console.log("Emitted user data with lastSeen:", payload.lastSeen);
 
-  } catch (error) {
-    console.error("Error during disconnect:", error);
-  }
-});
+        // Emit online user list
+        io.emit("Online User", Array.from(onlineUsers));
 
-    
+      } catch (error) {
+        console.error("Error during disconnect:", error);
+      }
+    });
+
+
 
   } catch (error) {
     console.error("Error during connection handling:", error);
