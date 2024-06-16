@@ -550,6 +550,21 @@ function MessagePage() {
       </div>
     }
   }
+  function formatLastSeen(lastSeen) {
+    const now = moment();
+    const lastSeenMoment = moment(lastSeen);
+    
+    if (now.diff(lastSeenMoment, 'days') === 0) {
+      // Today
+      return `today at ${lastSeenMoment.format('LT')}`;
+    } else if (now.diff(lastSeenMoment, 'days') === 1) {
+      // Yesterday
+      return `yesterday at ${lastSeenMoment.format('LT')}`;
+    } else {
+      // Any other day
+      return lastSeenMoment.format('MMMM Do YYYY, LT');
+    }
+  }
   useEffect(() => {
     if (isRecording) {
       timerRef.current = setInterval(() => {
@@ -585,9 +600,23 @@ function MessagePage() {
               {dataUser.online ? <span className='text-primary'>Online</span> : <span className='text slate-400'>Offline</span>}
             </p> */}
 
-<p className='-my-2 text-sm'>
+{/* <p className='-my-2 text-sm'>
   {dataUser.online ? <span className='text-primary'>Online</span> : (
     dataUser.lastSeen ? <span className='text-slate-400'>Last seen {moment(dataUser.lastSeen).fromNow()}</span> : <span className='text-slate-400'>Offline</span>
+  )}
+</p> */}
+
+<p className='-my-2 text-sm'>
+  {dataUser.online ? (
+    <span className='text-primary'>Online</span>
+  ) : (
+    dataUser.lastSeen ? (
+      <span className='text-slate-400'>
+        Last seen {formatLastSeen(dataUser.lastSeen)}
+      </span>
+    ) : (
+      <span className='text-slate-400'>Offline</span>
+    )
   )}
 </p>
 
