@@ -17,6 +17,10 @@ const messageSchema=new moongose.Schema({
          type:String,
         default:""
     },
+    delivered: {
+        type: Boolean,
+        default: false
+    },
     seen:{
         type:Boolean,
         default:false

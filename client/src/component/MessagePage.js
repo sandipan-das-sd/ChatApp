@@ -410,6 +410,7 @@ function MessagePage() {
       console.log('Socket connection established:', socketConnection.id);
       socketConnection.emit('message-page', params.userId);
       socketConnection.emit('seen', params.userId)
+     
 
       const handleMessageUser = (data) => {
         setDataUser(data);
