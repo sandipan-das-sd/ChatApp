@@ -252,7 +252,7 @@ console.log("User last seen updated:", updatedUser.lastSeen);
         };
         socket.emit('message-user', payload);
         console.log(payload);
-        console.log("Emitted user data with lastSeen:", payload.lastSeen);
+          console.log("Emitted user data with lastSeen:", payload.lastSeen);
 
         // Get previous messages
         const getConversationMessage = await ConversationModel.findOne({
@@ -361,12 +361,42 @@ console.log("User last seen updated:", updatedUser.lastSeen);
     });
 
     // Handle disconnect
-    socket.on("disconnect", async() => {
-      console.log("Disconnected user", socket.id);
-      onlineUsers.delete(user._id.toString());
-      io.emit("Online User", Array.from(onlineUsers));
-      await UserModel.findByIdAndUpdate(user._id, { lastSeen: new Date() });
-    });
+    // Handle disconnect
+// Handle disconnect
+socket.on("disconnect", async () => {
+  try {
+    console.log("Disconnected user", socket.id);
+    onlineUsers.delete(user._id.toString());
+    io.emit("Online User", Array.from(onlineUsers));
+    
+    // Update lastSeen in the database
+    await UserModel.findByIdAndUpdate(user._id, { lastSeen: new Date() });
+
+    // Fetch updated user details
+    const updatedUser = await UserModel.findById(user._id);
+    console.log("User last seen updated:", updatedUser.lastSeen);
+
+    // Emit updated user data with correct lastSeen timestamp
+    const payload = {
+      _id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      profile_pic: updatedUser.profile_pic,
+      online: false, // Since the user is now disconnected
+      lastSeen: updatedUser.lastSeen
+    };
+    socket.emit('message-user', payload);
+    console.log("Emitted user data with lastSeen:", payload.lastSeen);
+
+    // Emit online user list
+    io.emit("Online User", Array.from(onlineUsers));
+
+  } catch (error) {
+    console.error("Error during disconnect:", error);
+  }
+});
+
+    
 
   } catch (error) {
     console.error("Error during connection handling:", error);
