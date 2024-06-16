@@ -30,6 +30,10 @@ export default function SearchUser({ onClose }) {
   // Debounce the search input to prevent multiple API calls
   const debouncedHandleSearchUser = _.debounce(handelSearchUser, 500);
 
+  // useEffect(() => {
+  //   debouncedHandleSearchUser();
+  //   return debouncedHandleSearchUser.cancel; // Cleanup debounce on unmount
+  // }, [search]);
   useEffect(() => {
     debouncedHandleSearchUser();
     return debouncedHandleSearchUser.cancel; // Cleanup debounce on unmount
