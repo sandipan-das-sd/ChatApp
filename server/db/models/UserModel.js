@@ -23,7 +23,11 @@ const userSchema= new moongose.Schema({
     profile_pic:{
         type:String,
         default:""
-    }
+    },
+    lastSeen: {
+        type: Date,
+        default: null
+      }
 },{
     timestamps:true
 })

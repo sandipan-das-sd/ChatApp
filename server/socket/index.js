@@ -227,7 +227,10 @@ io.on('connection', async (socket) => {
       socket.disconnect(true);
       return;
     }
-
+   // Update last seen timestamp
+    await UserModel.findByIdAndUpdate(user._id, { lastSeen: new Date() });
+    const updatedUser = await UserModel.findById(user._id);
+console.log("User last seen updated:", updatedUser.lastSeen);
     // Create a room
     socket.join(user?._id.toString());
     onlineUsers.add(user?._id.toString());
@@ -244,10 +247,12 @@ io.on('connection', async (socket) => {
           name: userDetails.name,
           email: userDetails.email,
           profile_pic: userDetails.profile_pic,
-          online: onlineUsers.has(userId)
+          online: onlineUsers.has(userId),
+          lastSeen: userDetails.lastSeen
         };
         socket.emit('message-user', payload);
         console.log(payload);
+        console.log("Emitted user data with lastSeen:", payload.lastSeen);
 
         // Get previous messages
         const getConversationMessage = await ConversationModel.findOne({
@@ -265,6 +270,8 @@ io.on('connection', async (socket) => {
 
     // New message
     socket.on('new message', async (data) => {
+      // Update last seen timestamp
+  await UserModel.findByIdAndUpdate(data?.msgByUserId, { lastSeen: new Date() });
       let conversation = await ConversationModel.findOne({
         "$or": [
           { sender: data?.sender, receiver: data?.receiver },
@@ -354,10 +361,11 @@ io.on('connection', async (socket) => {
     });
 
     // Handle disconnect
-    socket.on("disconnect", () => {
+    socket.on("disconnect", async() => {
       console.log("Disconnected user", socket.id);
       onlineUsers.delete(user._id.toString());
       io.emit("Online User", Array.from(onlineUsers));
+      await UserModel.findByIdAndUpdate(user._id, { lastSeen: new Date() });
     });
 
   } catch (error) {

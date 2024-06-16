@@ -584,6 +584,15 @@ function MessagePage() {
             <p className='-my-2 text-sm'>
               {dataUser.online ? <span className='text-primary'>Online</span> : <span className='text slate-400'>Offline</span>}
             </p>
+
+{/* <p className='-my-2 text-sm'>
+  {dataUser.online ? <span className='text-primary'>Online</span> : (
+    dataUser.lastSeen ? <span className='text-slate-400'>Last seen {moment(dataUser.lastSeen).fromNow()}</span> : <span className='text-slate-400'>Offline</span>
+  )}
+</p> */}
+
+
+
           </div>
         </div>
         <div>

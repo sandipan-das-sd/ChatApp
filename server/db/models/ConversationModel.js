@@ -25,6 +25,7 @@ const messageSchema=new moongose.Schema({
         type:Boolean,
         default:false
     },
+    
     deliveredAt: {
         type: Date,
         default: null
