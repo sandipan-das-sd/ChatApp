@@ -303,7 +303,12 @@ import backgroundImage from "./../assets/wallapaper.jpeg";
 import { LuSendHorizonal } from "react-icons/lu";
 import moment from 'moment'
 
+import { FaPhoneAlt } from "react-icons/fa";
+
+
 function MessagePage() {
+
+  
   const params = useParams();
   const socketConnection = useSelector(state => state.user?.socketConnection);
   const user = useSelector(state => state?.user);
@@ -577,6 +582,11 @@ function MessagePage() {
     return () => clearInterval(timerRef.current);
   }, [isRecording]);
 
+
+
+
+
+
   return (
     <div style={{ backgroundImage: `url(${backgroundImage}) ` }} className='bg-no-repeat bg-cover bg-slate-200 bg-opacity-50'>
       {/* Header */}
@@ -596,15 +606,7 @@ function MessagePage() {
           </div>
           <div>
             <h3 className='font-semibold text-lg my-0 text-ellipsis line-clamp-1'>{dataUser?.name}</h3>
-            {/* <p className='-my-2 text-sm'>
-              {dataUser.online ? <span className='text-primary'>Online</span> : <span className='text slate-400'>Offline</span>}
-            </p> */}
-
-            {/* <p className='-my-2 text-sm'>
-  {dataUser.online ? <span className='text-primary'>Online</span> : (
-    dataUser.lastSeen ? <span className='text-slate-400'>Last seen {moment(dataUser.lastSeen).fromNow()}</span> : <span className='text-slate-400'>Offline</span>
-  )}
-</p> */}
+            
 
             <p className='-my-2 text-sm'>
               {dataUser.online ? (
@@ -624,12 +626,21 @@ function MessagePage() {
 
           </div>
         </div>
-        <div>
+        <div className=' flex items-center gap-6'>
+        <button className='cursor-pointer hover:text-primary' >
+          <FaPhoneAlt size={20} />
+        </button>
+        <button className='cursor-pointer hover:text-primary' >
+          <FaVideo size={20} />
+        </button>
           <button className='cursor-pointer hover:text-primary '>
             <BsThreeDotsVertical />
           </button>
         </div>
       </header>
+
+
+
 
       {/* Show All message */}
       <section className='h-[calc(100vh-128px)] overflow-x-hidden overflow-y-scroll scroolbar relative'>
