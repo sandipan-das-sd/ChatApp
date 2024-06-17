@@ -292,7 +292,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { BsThreeDotsVertical } from "react-icons/bs";
 import { FaAngleLeft, FaRegImage, FaVideo, FaPlus, FaMicrophone, FaTrash } from "react-icons/fa";
 import { RxCross2 } from "react-icons/rx";
@@ -303,12 +303,28 @@ import backgroundImage from "./../assets/wallapaper.jpeg";
 import { LuSendHorizonal } from "react-icons/lu";
 import moment from 'moment'
 
+
+
 import { FaPhoneAlt } from "react-icons/fa";
+
+function randomID(len) {
+  let result = '';
+  var chars = '12345qwertyuiopasdfgh67890jklmnbvcxzMNBVCZXASDQWERTYHGFUIOLKJP',
+    maxPos = chars.length,
+    i;
+  len = len || 5;
+  for (i = 0; i < len; i++) {
+    result += chars.charAt(Math.floor(Math.random() * maxPos));
+  }
+  return result;
+}
+
+
 
 
 function MessagePage() {
 
-  
+
   const params = useParams();
   const socketConnection = useSelector(state => state.user?.socketConnection);
   const user = useSelector(state => state?.user);
@@ -458,16 +474,7 @@ function MessagePage() {
     }
   }, [socketConnection, params.userId, user]);
 
-  // Function to mark messages as seen
-  // const markMessageAsSeen = (messageId) => {
-  //   if (socketConnection) {
-  //     socketConnection.emit('message seen', {
-  //       messageId,
-  //       receiver: user?._id,
-  //       sender: params.userId
-  //     });
-  //   }
-  // };
+
 
   const handleOnChange = (e) => {
     const { value } = e.target;
@@ -508,7 +515,7 @@ function MessagePage() {
       }
     }
   };
-
+  const navigate = useNavigate()
   const startRecording = () => {
     navigator.mediaDevices.getUserMedia({ audio: true })
       .then(stream => {
@@ -548,13 +555,15 @@ function MessagePage() {
       startRecording();
     }
   };
-  // const handelShowRecordTime = () => {
-  //   function constRecordtimeDiv() {
-  //     <div className='fixed bottom-2 right-10 transform -translate-x-1/2  p-3'>
-  //       Recording: {Math.floor(timer / 60)}:{timer % 60 < 10 ? '0' : ''}{timer % 60}
-  //     </div>
-  //   }
-  // }
+  const handleAudioCall = () => {
+    const roomID = randomID(5);
+    navigate('/call', { state: { roomID, mode: 'OneONoneCall' } });
+  };
+
+  const handleVideoCall = () => {
+    const roomID = randomID(5);
+    navigate('/call', { state: { roomID, mode: 'GroupCall' } });
+  };
   function formatLastSeen(lastSeen) {
     const now = moment();
     const lastSeenMoment = moment(lastSeen);
@@ -606,7 +615,7 @@ function MessagePage() {
           </div>
           <div>
             <h3 className='font-semibold text-lg my-0 text-ellipsis line-clamp-1'>{dataUser?.name}</h3>
-            
+
 
             <p className='-my-2 text-sm'>
               {dataUser.online ? (
@@ -627,18 +636,29 @@ function MessagePage() {
           </div>
         </div>
         <div className=' flex items-center gap-6'>
-        <button className='cursor-pointer hover:text-primary' >
-          <FaPhoneAlt size={20} />
-        </button>
-        <button className='cursor-pointer hover:text-primary' >
-          <FaVideo size={20} />
-        </button>
+          <button className='cursor-pointer hover:text-primary' >
+            <FaPhoneAlt size={20}
+              onClick={handleAudioCall}
+            />
+          </button>
+          <button className='cursor-pointer hover:text-primary' >
+            <FaVideo size={20}
+              onClick={handleVideoCall}
+            />
+          </button>
           <button className='cursor-pointer hover:text-primary '>
-            <BsThreeDotsVertical />
+            <BsThreeDotsVertical
+
+            />
           </button>
         </div>
       </header>
 
+
+      {/* Call Container
+       <div className="myCallContainer">
+        <div id="callContainer" style={{ width: '100vw', height: '100vh' }}></div>
+      </div> */}
 
 
 

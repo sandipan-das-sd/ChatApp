@@ -8,6 +8,7 @@ import MessagePage from "../component/MessagePage"
 import RegisterPage from "../pages/RegisterPage"
 import AuthLayouts from "../layout"
 import Forgotpassword from "../pages/Forgotpassword"
+import CallContainer from "../component/CallContainer"
 const router=createBrowserRouter([
     {
         path:'/',
@@ -41,6 +42,14 @@ const router=createBrowserRouter([
                 <AuthLayouts>
                     <Forgotpassword/>
                 </AuthLayouts>
+            },
+            {
+               path:"call",
+               element:
+               <AuthLayouts>
+                <CallContainer/>
+               </AuthLayouts>
+
             },
             {
                 path:"",
