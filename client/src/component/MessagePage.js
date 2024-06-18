@@ -302,7 +302,8 @@ import Loading from './Loading';
 import backgroundImage from "./../assets/wallapaper.jpeg";
 import { LuSendHorizonal } from "react-icons/lu";
 import moment from 'moment'
-
+import EmojiPicker from 'emoji-picker-react';
+import { BsEmojiSmile } from "react-icons/bs";
 
 
 import { FaPhoneAlt } from "react-icons/fa";
@@ -328,6 +329,7 @@ function MessagePage() {
   const params = useParams();
   const socketConnection = useSelector(state => state.user?.socketConnection);
   const user = useSelector(state => state?.user);
+  // for details for fetch  the header sliderbar  section
   const [dataUser, setDataUser] = useState({
     name: "",
     email: "",
@@ -352,8 +354,22 @@ function MessagePage() {
   const [allMessage, setAllMessage] = useState([])
   const [timer, setTimer] = useState(0);
   const timerRef = useRef(null);
+  const [showEmojiPicker, SetShowEmojiPicker] = useState(false)
 
+  const handelEmojiModal = () => {
+    SetShowEmojiPicker(!showEmojiPicker);
+  };
+
+  const handelEmojiClick = (emoji) => {
+    setMessage(prevMessage => ({
+      ...prevMessage,
+      text: prevMessage.text + emoji.emoji
+    }));
+  }
   //for Currenrmessage showing to the top user have not to scrool
+
+
+
   const lastMessageRef = useRef(null);
 
 
@@ -862,6 +878,26 @@ function MessagePage() {
             onChange={handleOnChange}
           />
 
+
+          <div className='flex items-center justify-center rounded-full gap-2'>
+            <BsEmojiSmile
+              className='text-panel-header-icon cursor-pointer text-xl'
+              title='Emoji'
+              id='emoji-open'
+              size={25}
+              onClick={handelEmojiModal}
+
+
+
+            />
+          </div>
+          {
+            showEmojiPicker &&
+            <div className=' absolute bottom-20 right-16 z-40 '>
+              <EmojiPicker onEmojiClick={handelEmojiClick} />
+            </div>
+          }
+
           {/* Audio Recording Button */}
 
           {message.text.length === 0 && !message.imageUrl && !message.videoUrl && !message.audioUrl && (
@@ -888,7 +924,9 @@ function MessagePage() {
               type='submit'
               disabled={!(message.text || message.imageUrl || message.videoUrl || message.audioUrl)}
             >
-              <LuSendHorizonal size={30} />
+              <LuSendHorizonal size={30} onClick={() => {
+                SetShowEmojiPicker(false)
+              }} />
             </button>
           ) : null}
 
