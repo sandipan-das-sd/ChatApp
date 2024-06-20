@@ -292,8 +292,12 @@ io.on('connection', async (socket) => {
         imageUrl: data.imageUrl,
         videoUrl: data.videoUrl,
         audioUrl: data.audioUrl,
+        fileUrl:data.fileUrl,
+        fileType:data.fileType,
+        fileName:data.fileName,
         msgByUserId: data?.msgByUserId
       });
+      console.log(message.fileType)
       const saveMessage = await message.save();
 
       await ConversationModel.updateOne({ _id: conversation._id }, {

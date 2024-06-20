@@ -17,6 +17,18 @@ const messageSchema=new moongose.Schema({
          type:String,
         default:""
     },
+    fileUrl:{
+        type:String,
+        default:""
+    },
+    fileType:{
+        type:String,
+        default:""
+    },
+    fileName:{
+         type:String,
+        default:""
+    },
     delivered: {
         type: Boolean,
         default: false
