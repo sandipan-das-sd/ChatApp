@@ -61,9 +61,9 @@ function MessagePage() {
     imageUrl: "",
     videoUrl: "",
     audioUrl: "",
-    fileUrl:"",
+    fileUrl: "",
     fileType: "",
-    fileName:""
+    fileName: ""
   });
   const [loading, setLoading] = useState(false);
   const [openImageVideoUpload, setOpenImageVideoUpload] = useState(false);
@@ -137,31 +137,31 @@ function MessagePage() {
     }));
   };
 
-  const handleUploadDocuments=async(e)=>{
+  const handleUploadDocuments = async (e) => {
     setLoading(true);
-  const file = e.target.files[0];
-  const uploadDocument = await uploadDocuments(file);
-  setLoading(false);
-  setOpenImageVideoUpload(false);
-  setMessage(prev => ({
-    ...prev,
-    fileUrl: uploadDocument.url,
-    fileName:file.name,
-    fileType:file.type
+    const file = e.target.files[0];
+    const uploadDocument = await uploadDocuments(file);
+    setLoading(false);
+    setOpenImageVideoUpload(false);
+    setMessage(prev => ({
+      ...prev,
+      fileUrl: uploadDocument.url,
+      fileName: file.name,
+      fileType: file.type
 
-  }));
+    }));
 
-  console.log("Uploaded File:", uploadDocument.name, uploadDocument.type, uploadDocument.url);
-  // const handleClearUploadDocument = () => {
-  //   setMessage(prev => ({
-  //     ...prev,
-  //     fileUrl: "",
-  //     fileName: "",
-  //     fileType: ""
-  //   }));
-  // };
-  
-  
+    console.log("Uploaded File:", uploadDocument.name, uploadDocument.type, uploadDocument.url);
+    // const handleClearUploadDocument = () => {
+    //   setMessage(prev => ({
+    //     ...prev,
+    //     fileUrl: "",
+    //     fileName: "",
+    //     fileType: ""
+    //   }));
+    // };
+
+
 
   }
   const handelUploadAudio = async (e) => {
@@ -249,7 +249,7 @@ function MessagePage() {
 
   const handleSendMessage = (e) => {
     e.preventDefault();
-    if (message.text || message.imageUrl || message.videoUrl || message.audioUrl||message.fileUrl) {
+    if (message.text || message.imageUrl || message.videoUrl || message.audioUrl || message.fileUrl) {
       if (socketConnection) {
         socketConnection.emit('new message', {
           sender: user?._id,
@@ -258,20 +258,20 @@ function MessagePage() {
           imageUrl: message.imageUrl,
           videoUrl: message.videoUrl,
           audioUrl: message.audioUrl,
-          fileUrl:message.fileUrl,
-          fileName:message.fileName,
-          fileType:message.fileType,
+          fileUrl: message.fileUrl,
+          fileName: message.fileName,
+          fileType: message.fileType,
           msgByUserId: user?._id
         });
-        
+
         setMessage({
           text: "",
           imageUrl: "",
           videoUrl: "",
           audioUrl: "",
-          fileUrl:"",
-          fileType:"",
-          fileName:""
+          fileUrl: "",
+          fileType: "",
+          fileName: ""
         })
         console.log("Sender ID:", user?._id);
         console.log("Receiver ID:", params.userId);
@@ -494,29 +494,29 @@ function MessagePage() {
                     )}
 
 
-{msg?.fileUrl && (
-            <div className='bg-gray-100 p-2 flex items-center gap-3'>
-              {msg.fileType.includes('pdf') && <AiFillFilePdf size={40} className='text-red-500' />}
-              {msg.fileType.includes('word') && <AiFillFileWord size={40} className='text-blue-500' />}
-              {msg.fileType.includes('spreadsheet') && <AiFillFileExcel size={40} className='text-green-500' />}
-              {msg.fileType.includes('presentation') && <AiFillFilePpt size={40} className='text-orange-500' />}
-              {!msg.fileType.includes('pdf') && 
-                !msg.fileType.includes('word') && 
-                !msg.fileType.includes('spreadsheet') && 
-                !msg.fileType.includes('presentation') && <AiFillFile size={40} className='text-gray-500' />}
-              <div >
-                <p className='font-semibold text-sm line-clamp-1 '>{msg.fileName}</p>
-                <a
-                  href={msg.fileUrl}
-                  target='_blank'
-                  rel='noopener noreferrer'
-                  className='text-blue-500 underline text-xs line-clamp-1'
-                >
-                  View Document
-                </a>
-              </div>
-            </div>
-          )}
+                    {msg?.fileUrl && (
+                      <div className='bg-gray-100 p-2 flex items-center gap-3'>
+                        {msg.fileType.includes('pdf') && <AiFillFilePdf size={40} className='text-red-500' />}
+                        {msg.fileType.includes('word') && <AiFillFileWord size={40} className='text-blue-500' />}
+                        {msg.fileType.includes('spreadsheet') && <AiFillFileExcel size={40} className='text-green-500' />}
+                        {msg.fileType.includes('presentation') && <AiFillFilePpt size={40} className='text-orange-500' />}
+                        {!msg.fileType.includes('pdf') &&
+                          !msg.fileType.includes('word') &&
+                          !msg.fileType.includes('spreadsheet') &&
+                          !msg.fileType.includes('presentation') && <AiFillFile size={40} className='text-gray-500' />}
+                        <div >
+                          <p className='font-semibold text-sm line-clamp-1 '>{msg.fileName}</p>
+                          <a
+                            href={msg.fileUrl}
+                            target='_blank'
+                            rel='noopener noreferrer'
+                            className='text-blue-500 underline text-xs line-clamp-1'
+                          >
+                            View Document
+                          </a>
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <p className='px-2'>{msg.text}</p>
                   <div className='flex items-center justify-end space-x-1'>
@@ -594,41 +594,41 @@ function MessagePage() {
 
         {/* Upload Documents Display */}
         {message.fileUrl && (
-  <div className='w-full h-full sticky bottom-0 bg-slate-700 bg-opacity-30 flex justify-center items-center rounded overflow-hidden'>
-    <div className='w-fit p-2 absolute top-5 right-0 cursor-pointer hover:text-red-600' onClick={()=>{
-          setMessage(prev => ({
-            ...prev,
-            fileUrl: "",
-            fileName: "",
-            fileType: ""
-          }));
+          <div className='w-full h-full sticky bottom-0 bg-slate-700 bg-opacity-30 flex justify-center items-center rounded overflow-hidden'>
+            <div className='w-fit p-2 absolute top-5 right-0 cursor-pointer hover:text-red-600' onClick={() => {
+              setMessage(prev => ({
+                ...prev,
+                fileUrl: "",
+                fileName: "",
+                fileType: ""
+              }));
 
-    }}>
-      <RxCross2 size={30} />
-    </div>
-    <div className='bg-white p-3 flex items-center gap-3'>
-      {message.fileType.includes('pdf') && <AiFillFilePdf size={40} className='text-red-500' />}
-      {message.fileType.includes('word') && <AiFillFileWord size={40} className='text-blue-500' />}
-      {message.fileType.includes('spreadsheet') && <AiFillFileExcel size={40} className='text-green-500' />}
-      {message.fileType.includes('presentation') && <AiFillFilePpt size={40} className='text-orange-500' />}
-      {!message.fileType.includes('pdf') && 
-        !message.fileType.includes('word') && 
-        !message.fileType.includes('spreadsheet') && 
-        !message.fileType.includes('presentation') && <AiFillFile size={40} className='text-gray-500' />}
-      <div>
-        <p className='font-semibold'>{message.fileName}</p>
-        <a
-          href={message.fileUrl}
-          target='_blank'
-          rel='noopener noreferrer'
-          className='text-blue-500 underline'
-        >
-          View Document
-        </a>
-      </div>
-    </div>
-  </div>
-)}
+            }}>
+              <RxCross2 size={30} />
+            </div>
+            <div className='bg-white p-3 flex items-center gap-3'>
+              {message.fileType.includes('pdf') && <AiFillFilePdf size={40} className='text-red-500' />}
+              {message.fileType.includes('word') && <AiFillFileWord size={40} className='text-blue-500' />}
+              {message.fileType.includes('spreadsheet') && <AiFillFileExcel size={40} className='text-green-500' />}
+              {message.fileType.includes('presentation') && <AiFillFilePpt size={40} className='text-orange-500' />}
+              {!message.fileType.includes('pdf') &&
+                !message.fileType.includes('word') &&
+                !message.fileType.includes('spreadsheet') &&
+                !message.fileType.includes('presentation') && <AiFillFile size={40} className='text-gray-500' />}
+              <div>
+                <p className='font-semibold'>{message.fileName}</p>
+                <a
+                  href={message.fileUrl}
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  className='text-blue-500 underline'
+                >
+                  View Document
+                </a>
+              </div>
+            </div>
+          </div>
+        )}
 
 
 
@@ -703,52 +703,52 @@ function MessagePage() {
             </div>
           )} */}
 
-{openImageVideoUpload && (
-          <div className='bg-white shadow rounded absolute bottom-14 w-36 p-2'>
-            <form>
-              <label htmlFor='uploadImage' className='flex items-center p-2 px-3 gap-3 hover:bg-slate-200 cursor-pointer'>
-                <div className='text-primary'>
-                  <FaRegImage size={18} />
-                </div>
-                <p>Image</p>
-              </label>
-              <label htmlFor='uploadVideo' className='flex items-center p-2 gap-3 px-3 hover:bg-slate-200 cursor-pointer'>
-                <div className='text-purple-500 '>
-                  <FaVideo size={18} />
-                </div>
-                <p>Video</p>
-              </label>
-              <input
-                type='file'
-                id='uploadImage'
-                accept='.jpg, .jpeg, .png, .gif, .bmp, .tiff, .tif, .webp, .svg, .heic, .heif'
-                onChange={handleUploadImage} 
-                className='hidden'
-              />
-              <input
-                type='file'
-                accept=".mp4, .mkv, .avi, .mov, .wmv, .flv, .webm, .m4v, .mpeg, .mpg, .ogv, .3gp, .3g2"
-                id='uploadVideo'
-                onChange={handleUploadVideo} 
-                className='hidden'
-              />
-              <label htmlFor='uploadDocument' className='flex items-center p-2 gap-3 px-3 hover:bg-slate-200 cursor-pointer'>
-                <div className='text-purple-500 '>
-                  <MdOutlineAttachFile size={18} />
-                </div>
-                <p>File</p>
-              </label>
-              <input
-                type='file'
-                id='uploadDocument'
-                accept='.pdf,.doc,.docx,.odt,.rtf,.txt,.html,.htm,.xls,.xlsx,.ods,.ppt,.pptx,.odp,.epub,.mobi,.azw,.csv,.json,.xml,.md,.ps,.pub,.pages'
-                onChange={handleUploadDocuments}
-                className='hidden'
-              />
-            </form>
-          </div>
-        )}
-          
+          {openImageVideoUpload && (
+            <div className='bg-white shadow rounded absolute bottom-14 w-36 p-2'>
+              <form>
+                <label htmlFor='uploadImage' className='flex items-center p-2 px-3 gap-3 hover:bg-slate-200 cursor-pointer'>
+                  <div className='text-primary'>
+                    <FaRegImage size={18} />
+                  </div>
+                  <p>Image</p>
+                </label>
+                <label htmlFor='uploadVideo' className='flex items-center p-2 gap-3 px-3 hover:bg-slate-200 cursor-pointer'>
+                  <div className='text-purple-500 '>
+                    <FaVideo size={18} />
+                  </div>
+                  <p>Video</p>
+                </label>
+                <input
+                  type='file'
+                  id='uploadImage'
+                  accept='.jpg, .jpeg, .png, .gif, .bmp, .tiff, .tif, .webp, .svg, .heic, .heif'
+                  onChange={handleUploadImage}
+                  className='hidden'
+                />
+                <input
+                  type='file'
+                  accept=".mp4, .mkv, .avi, .mov, .wmv, .flv, .webm, .m4v, .mpeg, .mpg, .ogv, .3gp, .3g2"
+                  id='uploadVideo'
+                  onChange={handleUploadVideo}
+                  className='hidden'
+                />
+                <label htmlFor='uploadDocument' className='flex items-center p-2 gap-3 px-3 hover:bg-slate-200 cursor-pointer'>
+                  <div className='text-purple-500 '>
+                    <MdOutlineAttachFile size={18} />
+                  </div>
+                  <p>File</p>
+                </label>
+                <input
+                  type='file'
+                  id='uploadDocument'
+                  accept='.pdf,.doc,.docx,.odt,.rtf,.txt,.html,.htm,.xls,.xlsx,.ods,.ppt,.pptx,.odp,.epub,.mobi,.azw,.csv,.json,.xml,.md,.ps,.pub,.pages'
+                  onChange={handleUploadDocuments}
+                  className='hidden'
+                />
+              </form>
+            </div>
+          )}
+
         </div>
 
         {/* Type a message Input Box */}
@@ -800,12 +800,12 @@ function MessagePage() {
 
           )}
 
-          {message.text.length > 0 || message.imageUrl || message.videoUrl || message.audioUrl||message.fileUrl ? (
+          {message.text.length > 0 || message.imageUrl || message.videoUrl || message.audioUrl || message.fileUrl ? (
             // Show send message button
             <button
               className='text-primary hover:text-secondary'
               type='submit'
-              disabled={!(message.text || message.imageUrl || message.videoUrl || message.audioUrl||message.fileUrl)}
+              disabled={!(message.text || message.imageUrl || message.videoUrl || message.audioUrl || message.fileUrl)}
             >
               <LuSendHorizonal size={30} onClick={() => {
                 SetShowEmojiPicker(false)

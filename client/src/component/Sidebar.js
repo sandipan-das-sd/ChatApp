@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { IoChatbubbleEllipsesSharp } from "react-icons/io5";
 import { FaImage, FaUserPlus } from "react-icons/fa";
 import { CgLogOut } from "react-icons/cg";
-import {  NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import Avatar from "../component/Avatar";
 import { useDispatch, useSelector } from "react-redux"
 import EditUserDetails from './EditUserDetails';
@@ -12,6 +12,7 @@ import { FaVideo } from "react-icons/fa"
 import { GoArrowUpLeft } from "react-icons/go";
 import { logout } from '../redux/userSlice';
 import toast from 'react-hot-toast';
+import { MdAttachFile } from "react-icons/md";
 
 function Sidebar() {
   const user = useSelector(state => state?.user)
@@ -19,8 +20,8 @@ function Sidebar() {
   const [allUser, SetallUser] = useState([])
   const [opensearchUser, Setopensearch] = useState(false)
   const socketConnection = useSelector(state => state.user?.socketConnection);
-  const dispatch=useDispatch()
-  const navigate=useNavigate()
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
   // const user = useSelector(state => state?.user);
   useEffect(() => {
     if (socketConnection) {
@@ -57,7 +58,7 @@ function Sidebar() {
       })
     }
   }, [socketConnection, user])
-  const handelLogout=()=>{
+  const handelLogout = () => {
     dispatch(logout)
     toast.success("Logged Out Succesfully!!")
     navigate('/email')
@@ -132,7 +133,7 @@ function Sidebar() {
             }
             {
               allUser.map((conv, index) => (
-                <NavLink to={"/"+conv?.userDetails?._id} key={conv?._id} className='flex items-center py-3 px-2  gap-2 border border-transparent hover:border-primary rounded hover:bg-slate-100 cursor-pointer '>
+                <NavLink to={"/" + conv?.userDetails?._id} key={conv?._id} className='flex items-center py-3 px-2  gap-2 border border-transparent hover:border-primary rounded hover:bg-slate-100 cursor-pointer '>
                   <div>
                     <Avatar
                       ImageUrl={conv?.userDetails?.profile_pic}
@@ -172,6 +173,19 @@ function Sidebar() {
 
                           )
                         }
+
+                        {
+                          conv?.lastMsg?.fileUrl && (
+                            <div className='flex items-center gap-1'>
+                              <span> <MdAttachFile /></span>
+                              {
+                                !conv?.lastMsg?.text &&
+                                <span>File</span>
+                              }
+                            </div>
+
+                          )
+                        }
                       </div>
 
 
@@ -183,15 +197,15 @@ function Sidebar() {
 
                   </div>
                   {
-                   Boolean( conv.unseenMsg) &&(
+                    Boolean(conv.unseenMsg) && (
                       <p className='text-xs w-6 h-6 flex justify-center items-center ml-auto p-1 bg-primary text-white font-semibold rounded-full'>{conv.unseenMsg}</p>
-                          
+
 
                     )
 
                   }
 
-                 
+
                 </NavLink>
 
               ))
