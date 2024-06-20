@@ -281,7 +281,9 @@ function MessagePage() {
           // Update Redux state or component state with onlineUsers
         });
 
-        setMessage({ text: "", imageUrl: "", videoUrl: "", audioUrl: "" });
+        setMessage({ text: "", imageUrl: "", videoUrl: "", audioUrl: "" , fileUrl: "",
+          fileType: "",
+          fileName: ""}); //new added
       }
     }
   };
