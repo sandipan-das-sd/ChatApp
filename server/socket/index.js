@@ -201,8 +201,17 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL,
-    credentials: true
+    origin: function (origin, callback) {
+      const allowedOrigins = [process.env.FRONTEND_URL, 'https://chat-app-psi-three-33.vercel.app'];
+      if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    methods: ['GET', 'POST'], // Allow specific methods
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'], // Allow specific headers
+    credentials: true,
   }
 });
 
