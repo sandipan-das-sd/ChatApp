@@ -188,7 +188,27 @@ function MessagePage() {
       videoUrl: ""
     }));
   };
-
+  useEffect(() => {
+    if (socketConnection) {
+      socketConnection.on('connect', () => {
+        console.log('Socket connected:', socketConnection.id);
+      });
+  
+      socketConnection.on('disconnect', (reason) => {
+        console.log('Socket disconnected:', reason);
+      });
+  
+      socketConnection.on('connect_error', (error) => {
+        console.error('Connection error:', error);
+      });
+  
+      return () => {
+        socketConnection.off('connect');
+        socketConnection.off('disconnect');
+        socketConnection.off('connect_error');
+      };
+    }
+  }, [socketConnection]);
   useEffect(() => {
     if (socketConnection) {
       console.log('Socket connection established:', socketConnection.id);
@@ -293,52 +313,57 @@ function MessagePage() {
   //     }
   //   }
   // };
-
   const handleSendMessage = (e) => {
     e.preventDefault();
-    
-    // 1. Validate socket connection
+  
+    // Validate socket connection
     if (!socketConnection) {
-      console.error('No socket connection available');
+      console.error('Socket connection not available');
       return;
     }
   
-    // 2. Validate required data
+    // Validate required data
     if (!user?._id || !params.userId) {
-      console.error('Missing user ID or receiver ID', { 
-        userId: user?._id, 
-        receiverId: params.userId 
+      console.error('Missing user ID or receiver ID', {
+        userId: user?._id,
+        receiverId: params.userId
       });
       return;
     }
   
-    // 3. Create message payload
-    const messagePayload = {
-      sender: user?._id,
-      receiver: params.userId,
-      text: message.text,
-      imageUrl: message.imageUrl,
-      videoUrl: message.videoUrl,
-      audioUrl: message.audioUrl,
-      fileUrl: message.fileUrl,
-      fileName: message.fileName,
-      fileType: message.fileType,
-      msgByUserId: user?._id
-    };
-  
-    console.log('Attempting to send message with payload:', messagePayload);
-  
+    // Only proceed if there's actual content to send
     if (message.text || message.imageUrl || message.videoUrl || 
         message.audioUrl || message.fileUrl) {
       
-      // 4. Emit message with acknowledgment callback
+      const messagePayload = {
+        sender: user._id,
+        receiver: params.userId,
+        text: message.text,
+        imageUrl: message.imageUrl,
+        videoUrl: message.videoUrl,
+        audioUrl: message.audioUrl,
+        fileUrl: message.fileUrl,
+        fileName: message.fileName,
+        fileType: message.fileType,
+        msgByUserId: user._id,
+        tempId: Date.now() // Add temporary ID for tracking
+      };
+  
+      console.log('Sending message:', messagePayload);
+  
+      // Emit message with acknowledgment callback
       socketConnection.emit('new message', messagePayload, (response) => {
-        if (response?.error) {
-          console.error('Error sending message:', response.error);
-        } else {
+        if (response?.success) {
           console.log('Message sent successfully:', response);
           
-          // 5. Clear message state only after successful send
+          // Update messages list immediately for better UX
+          setAllMessage(prev => [...prev, {
+            ...messagePayload,
+            _id: response.messageId,
+            createdAt: new Date()
+          }]);
+          
+          // Clear message state after successful send
           setMessage({
             text: "",
             imageUrl: "",
@@ -348,30 +373,50 @@ function MessagePage() {
             fileType: "",
             fileName: ""
           });
+  
+          // Close emoji picker if open
+          SetShowEmojiPicker(false);
+        } else {
+          console.error('Failed to send message:', response?.error);
         }
       });
   
-      // 6. Set up specific handlers for this message
-      const messageId = Date.now(); // Temporary ID for tracking
-      
-      const handleMessageSaved = (savedMessage) => {
-        if (savedMessage.tempId === messageId) {
-          console.log('Message saved successfully:', savedMessage);
-          socketConnection.off('message-saved', handleMessageSaved);
+      // Handle incoming message update
+      socketConnection.on('message', (updatedMessages) => {
+        if (Array.isArray(updatedMessages)) {
+          setAllMessage(updatedMessages);
         }
-      };
-  
-      const handleMessageError = (error) => {
-        if (error.tempId === messageId) {
-          console.error('Error saving message:', error);
-          socketConnection.off('message-error', handleMessageError);
-        }
-      };
-  
-      socketConnection.on('message-saved', handleMessageSaved);
-      socketConnection.on('message-error', handleMessageError);
+      });
     }
   };
+  
+  // Add this useEffect to handle socket events
+  useEffect(() => {
+    if (socketConnection) {
+      // Listen for new messages
+      socketConnection.on('message', (updatedMessages) => {
+        if (Array.isArray(updatedMessages)) {
+          setAllMessage(updatedMessages);
+          
+          // Scroll to bottom on new message
+          if (lastMessageRef.current) {
+            lastMessageRef.current.scrollIntoView({ behavior: "smooth" });
+          }
+        }
+      });
+  
+      // Listen for errors
+      socketConnection.on('error', (error) => {
+        console.error('Socket error:', error);
+      });
+  
+      // Cleanup listeners on unmount
+      return () => {
+        socketConnection.off('message');
+        socketConnection.off('error');
+      };
+    }
+  }, [socketConnection]);
   
   const navigate = useNavigate()
   const startRecording = () => {

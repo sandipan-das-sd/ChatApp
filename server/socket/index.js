@@ -34,30 +34,27 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: [
-      "https://chat-app-client-black.vercel.app",
-      "http://localhost:3000"
-    ],
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: [
-      'Content-Type', 
-      'Authorization', 
-      'X-Requested-With'
-    ],
+    origin: ["https://chat-app-client-black.vercel.app", "http://localhost:3000"],
+    methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true
   },
+  // Important settings for Heroku
   transports: ['websocket', 'polling'],
   pingTimeout: 60000,
   pingInterval: 25000,
-  connectionStateRecovery: {
-    maxDisconnectionDuration: 2 * 60 * 1000, // 2 minutes
-    skipMiddlewares: true,
-  },
-  allowEIO3: true, // Enable compatibility with Socket.IO v3 clients
-  maxHttpBufferSize: 1e6, // 1MB
-  path: '/socket.io/', // Explicitly set the default path
-  serveClient: false // Don't serve client files
+  path: '/socket.io/',
+  // Add this for Heroku
+  handlePreflightRequest: (req, res) => {
+    res.writeHead(200, {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET,POST",
+      "Access-Control-Allow-Headers": "my-custom-header",
+      "Access-Control-Allow-Credentials": true
+    });
+    res.end();
+  }
 });
+
 
 // Add error handling
 io.engine.on("connection_error", (err) => {
@@ -187,94 +184,52 @@ io.on('connection', async (socket) => {
 
     socket.on('new message', async (data, callback) => {
       try {
-        console.log('Received new message data:', data);
-    
-        // 1. Validate required fields
-        if (!data?.sender || !data?.receiver || !data?.msgByUserId) {
-          throw new Error('Missing required message fields');
-        }
-    
-        // 2. Update user's last seen
-        await UserModel.findByIdAndUpdate(data.msgByUserId, { 
-          lastSeen: new Date() 
+        console.log('Received message data:', data);
+        
+        // Save message to database
+        const message = new MessageModel({
+          text: data.text,
+          imageUrl: data.imageUrl,
+          videoUrl: data.videoUrl,
+          audioUrl: data.audioUrl,
+          fileUrl: data.fileUrl,
+          fileType: data.fileType,
+          fileName: data.fileName,
+          msgByUserId: data.msgByUserId
         });
-    
-        // 3. Find or create conversation with logging
+  
+        const savedMessage = await message.save();
+        console.log('Message saved:', savedMessage);
+  
+        // Find or create conversation
         let conversation = await ConversationModel.findOne({
-          "$or": [
+          $or: [
             { sender: data.sender, receiver: data.receiver },
             { sender: data.receiver, receiver: data.sender }
           ]
         });
-        
-        console.log('Existing conversation found:', conversation?._id);
-    
+  
         if (!conversation) {
-          console.log('Creating new conversation...');
           conversation = await ConversationModel.create({
             sender: data.sender,
-            receiver: data.receiver
+            receiver: data.receiver,
+            messages: [savedMessage._id]
           });
-          console.log('New conversation created:', conversation._id);
+        } else {
+          conversation.messages.push(savedMessage._id);
+          await conversation.save();
         }
-    
-        // 4. Create and save message
-        const messageData = {
-          text: data.text || '',
-          imageUrl: data.imageUrl || '',
-          videoUrl: data.videoUrl || '',
-          audioUrl: data.audioUrl || '',
-          fileUrl: data.fileUrl || '',
-          fileType: data.fileType || '',
-          fileName: data.fileName || '',
-          msgByUserId: data.msgByUserId,
-          delivered: false,
-          seen: false
-        };
-    
-        console.log('Creating message with data:', messageData);
-        
-        const message = new MessageModel(messageData);
-        const savedMessage = await message.save();
-        console.log('Message saved:', savedMessage._id);
-    
-        // 5. Update conversation
-        const updateResult = await ConversationModel.updateOne(
-          { _id: conversation._id },
-          { 
-            "$push": { messages: savedMessage._id },
-            "$set": { updatedAt: new Date() }
-          }
-        );
-        console.log('Conversation updated:', updateResult);
-    
-        // 6. Send acknowledgment
-        callback({ success: true, messageId: savedMessage._id });
-    
-        // 7. Emit updated messages to both users
-        const updatedConversation = await ConversationModel.findById(conversation._id)
-          .populate('messages')
-          .sort({ updatedAt: -1 });
-    
-        io.to(data.sender).emit('message', updatedConversation.messages);
-        io.to(data.receiver).emit('message', updatedConversation.messages);
-    
-        // 8. Update conversation list for both users
-        const [senderConvo, receiverConvo] = await Promise.all([
-          getConversation(data.sender),
-          getConversation(data.receiver)
-        ]);
-    
-        io.to(data.sender).emit('conversation', senderConvo);
-        io.to(data.receiver).emit('conversation', receiverConvo);
-    
+  
+        // Emit to both sender and receiver
+        io.to(data.sender).emit('message', savedMessage);
+        io.to(data.receiver).emit('message', savedMessage);
+  
+        // Send acknowledgment
+        if (callback) callback({ success: true, messageId: savedMessage._id });
+  
       } catch (error) {
-        console.error('Error processing new message:', error);
-        callback({ error: error.message });
-        socket.emit('message-error', { 
-          error: error.message,
-          tempId: data.tempId 
-        });
+        console.error('Error handling message:', error);
+        if (callback) callback({ success: false, error: error.message });
       }
     });
 
@@ -320,12 +275,15 @@ io.on('connection', async (socket) => {
       }
     });
 
-    // Handle disconnect
-    // Handle disconnect
+    socket.on('error', (error) => {
+      console.error('Socket error:', error);
+    });
+  
     // Handle disconnect
     socket.on("disconnect", async () => {
       try {
         console.log("Disconnected user", socket.id);
+        console.log('Client disconnected', socket.id, 'reason:', reason);
         onlineUsers.delete(user._id.toString());
         io.emit("Online User", Array.from(onlineUsers));
 
