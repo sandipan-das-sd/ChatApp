@@ -185,9 +185,9 @@ io.on('connection', async (socket) => {
 // Replace ONLY this 'new message' handler in your server code (socket.js)
 socket.on('new message', async (data, callback) => {
   try {
-    console.log('Received message data:', data);
+    console.log('Step 1: Received message data:', data);
     
-    // Save message to database
+    // Create message
     const message = new MessageModel({
       text: data.text || '',
       imageUrl: data.imageUrl || '',
@@ -202,7 +202,7 @@ socket.on('new message', async (data, callback) => {
     });
 
     const savedMessage = await message.save();
-    console.log('Message saved:', savedMessage);
+    console.log('Step 2: Saved message:', savedMessage._id);
 
     // Find or create conversation
     let conversation = await ConversationModel.findOne({
@@ -218,45 +218,45 @@ socket.on('new message', async (data, callback) => {
         receiver: data.receiver,
         messages: [savedMessage._id]
       });
-      await conversation.save();
     } else {
       conversation.messages.push(savedMessage._id);
-      await conversation.save();
     }
+    
+    await conversation.save();
+    console.log('Step 3: Updated conversation:', conversation._id);
 
-    // Get updated conversation messages
+    // Get updated conversation with populated messages
     const updatedConversation = await ConversationModel.findById(conversation._id)
-      .populate('messages')
-      .sort({ updatedAt: -1 });
+      .populate({
+        path: 'messages',
+        options: { sort: { createdAt: -1 } }
+      })
+      .exec();
+
+    console.log('Step 4: Emitting messages to rooms');
 
     // Send acknowledgment
     if (callback) {
-      callback({ 
-        success: true, 
-        messageId: savedMessage._id 
-      });
+      callback({ success: true, messageId: savedMessage._id });
     }
 
-    // Emit updated messages to both users
+    // Emit messages
     io.to(data.sender).emit('message', updatedConversation.messages);
     io.to(data.receiver).emit('message', updatedConversation.messages);
 
-    // Update conversation list for both users
-    const [senderConversations, receiverConversations] = await Promise.all([
+    // Update conversations list
+    const [senderConvo, receiverConvo] = await Promise.all([
       getConversation(data.sender),
       getConversation(data.receiver)
     ]);
 
-    io.to(data.sender).emit('conversation', senderConversations);
-    io.to(data.receiver).emit('conversation', receiverConversations);
+    io.to(data.sender).emit('conversation', senderConvo);
+    io.to(data.receiver).emit('conversation', receiverConvo);
 
   } catch (error) {
-    console.error('Error handling message:', error);
+    console.error('Error in message handler:', error);
     if (callback) {
-      callback({ 
-        success: false, 
-        error: error.message 
-      });
+      callback({ success: false, error: error.message });
     }
   }
 });
