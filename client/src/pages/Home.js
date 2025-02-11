@@ -98,48 +98,59 @@ import io from 'socket.io-client';
 import { toast } from 'react-hot-toast';
 
 // Constants
-const MAX_RECONNECT_ATTEMPTS = 5;
-const SOCKET_TIMEOUT = 10000;
-const FETCH_TIMEOUT = 5000;
+const MAX_RETRIES = 3;
+const INITIAL_TIMEOUT = 10000;
+const SOCKET_URL = 'https://chathub-connect-server-19e1047470c1.herokuapp.com';
 
 const fetchUserDetails = async (dispatch, navigate) => {
-  console.log('[fetchUserDetails] Starting user details fetch...');
-  
-  try {
-    const token = localStorage.getItem('Token');
-    if (!token) {
-      console.warn('[fetchUserDetails] No token found in localStorage');
-      throw new Error('No authentication token found');
+  let retryCount = 0;
+
+  const attemptFetch = async () => {
+    console.log(`[fetchUserDetails] Attempt ${retryCount + 1}/${MAX_RETRIES}`);
+    
+    try {
+      const token = localStorage.getItem('Token');
+      if (!token) {
+        navigate('/email');
+        return false;
+      }
+
+      const response = await axios({
+        url: `${SOCKET_URL}/api/user-details`,
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        withCredentials: true,
+        timeout: INITIAL_TIMEOUT * (retryCount + 1)
+      });
+
+      if (response.data.data) {
+        dispatch(setUser(response.data.data));
+        return true;
+      }
+      return false;
+
+    } catch (error) {
+      if (error.response?.status === 401) {
+        localStorage.removeItem('Token');
+        navigate('/email');
+        return false;
+      }
+
+      if (retryCount < MAX_RETRIES - 1) {
+        retryCount++;
+        await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount)));
+        return await attemptFetch();
+      }
+
+      toast.error('Unable to connect to server');
+      return false;
     }
+  };
 
-    const URL = 'https://chathub-connect-server-19e1047470c1.herokuapp.com/api/user-details';
-    console.log('[fetchUserDetails] Fetching from URL:', URL);
-
-    const response = await axios({
-      url: URL,
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      },
-      withCredentials: true,
-      timeout: FETCH_TIMEOUT
-    });
-
-    console.log('[fetchUserDetails] Response received:', response.data);
-
-    if (response.data.data) {
-      dispatch(setUser(response.data.data));
-      return true;
-    }
-    return false;
-  } catch (error) {
-    console.error('[fetchUserDetails] Error:', error);
-    if (error.response?.status === 401) {
-      localStorage.removeItem('Token');
-      navigate('/email');
-    }
-    return false;
-  }
+  return await attemptFetch();
 };
 
 function Home() {
@@ -150,51 +161,38 @@ function Home() {
   const basePath = location.pathname === '/';
   
   const socketRef = useRef(null);
-  const reconnectTimeoutRef = useRef(null);
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
   const [reconnectAttempts, setReconnectAttempts] = useState(0);
 
   const cleanupSocket = useCallback(() => {
     if (socketRef.current) {
-      console.log('[cleanup] Disconnecting socket:', socketRef.current.id);
       socketRef.current.disconnect();
       socketRef.current = null;
-    }
-    if (reconnectTimeoutRef.current) {
-      clearTimeout(reconnectTimeoutRef.current);
-      reconnectTimeoutRef.current = null;
     }
   }, []);
 
   const initializeSocket = useCallback(async () => {
-    console.log('[initializeSocket] Starting socket initialization...');
-    
     const token = localStorage.getItem('Token');
     if (!token) {
-      console.error('[initializeSocket] No token found');
       navigate('/email');
       return;
     }
 
     try {
-      // Clean up existing socket
       cleanupSocket();
-
-      const SOCKET_URL = process.env.REACT_APP_BACKEND_URL;
-      console.log('[initializeSocket] Attempting connection to:', SOCKET_URL);
 
       const socket = io(SOCKET_URL, {
         auth: { token },
-        transports: ['websocket'],
+        transports: ['websocket', 'polling'],
         reconnection: true,
-        reconnectionAttempts: MAX_RECONNECT_ATTEMPTS,
+        reconnectionAttempts: 5,
         reconnectionDelay: 1000,
-        timeout: SOCKET_TIMEOUT,
+        timeout: 10000,
+        forceNew: true,
         withCredentials: true
       });
 
       socket.on('connect', () => {
-        console.log('[Socket] Connected successfully. Socket ID:', socket.id);
         setConnectionStatus('connected');
         setReconnectAttempts(0);
         toast.success('Connected to chat server');
@@ -204,64 +202,74 @@ function Home() {
         console.error('[Socket] Connection error:', error.message);
         setConnectionStatus('error');
         
-        const attemptCount = reconnectAttempts + 1;
-        setReconnectAttempts(attemptCount);
+        const attempt = reconnectAttempts + 1;
+        setReconnectAttempts(attempt);
         
-        if (attemptCount >= MAX_RECONNECT_ATTEMPTS) {
-          toast.error('Unable to connect to server. Please try again later.');
+        if (attempt >= 5) {
+          toast.error('Unable to connect to server');
           cleanupSocket();
-        } else {
-          // Implement exponential backoff
-          const delay = Math.min(1000 * Math.pow(2, attemptCount), 10000);
-          reconnectTimeoutRef.current = setTimeout(() => {
-            initializeSocket();
-          }, delay);
         }
       });
 
       socket.on('disconnect', (reason) => {
-        console.log('[Socket] Disconnected. Reason:', reason);
         setConnectionStatus('disconnected');
         
         if (reason === 'io server disconnect') {
-          toast.error('Disconnected by server. Please login again.');
+          toast.error('Session expired. Please login again.');
           dispatch(logout());
           navigate('/email');
         } else {
-          toast.warning('Connection lost. Attempting to reconnect...');
+          toast.warning('Connection lost. Reconnecting...');
         }
       });
 
       socket.on('Online User', (data) => {
-        console.log('[Socket] Online users updated:', data);
         dispatch(setOnlineUser(data));
       });
 
+      socket.on('pong', () => {
+        console.log('Connection alive');
+      });
+
+      // Store socket reference
       socketRef.current = socket;
       dispatch(setSocketConnection(socket));
 
+      // Start heartbeat
+      const heartbeat = setInterval(() => {
+        if (socket.connected) {
+          socket.emit('ping');
+        }
+      }, 30000);
+
+      socket.heartbeat = heartbeat;
+
+      return () => {
+        clearInterval(heartbeat);
+      };
+
     } catch (error) {
-      console.error('[initializeSocket] Error:', error);
+      console.error('Socket initialization error:', error);
       toast.error('Failed to initialize chat connection');
     }
   }, [dispatch, navigate, cleanupSocket, reconnectAttempts]);
 
   useEffect(() => {
-    console.log('[Home] Component mounted');
-    let isMounted = true;
+    let mounted = true;
 
     const initialize = async () => {
-      const userFetched = await fetchUserDetails(dispatch, navigate);
-      if (userFetched && isMounted) {
-        await initializeSocket();
+      if (mounted) {
+        const userFetched = await fetchUserDetails(dispatch, navigate);
+        if (userFetched && mounted) {
+          await initializeSocket();
+        }
       }
     };
 
     initialize();
 
     return () => {
-      console.log('[Home] Component unmounting');
-      isMounted = false;
+      mounted = false;
       cleanupSocket();
     };
   }, [dispatch, navigate, initializeSocket, cleanupSocket]);
@@ -280,7 +288,7 @@ function Home() {
       </span>
       {reconnectAttempts > 0 && (
         <span className="text-xs ml-2">
-          (Attempt {reconnectAttempts}/{MAX_RECONNECT_ATTEMPTS})
+          (Attempt {reconnectAttempts}/5)
         </span>
       )}
     </div>
