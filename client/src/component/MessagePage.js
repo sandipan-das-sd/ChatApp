@@ -247,52 +247,132 @@ function MessagePage() {
     }));
   };
 
+  // const handleSendMessage = (e) => {
+  //   e.preventDefault();
+  //   console.log('Sending message data:', {
+  //     sender: user?._id,
+  //     receiver: params.userId,
+  //     text: message.text,
+  //     msgByUserId: user?._id
+  //   });
+  //   if (message.text || message.imageUrl || message.videoUrl || message.audioUrl || message.fileUrl) {
+  //     if (socketConnection) {
+  //       socketConnection.emit('new message', {
+  //         sender: user?._id,
+  //         receiver: params.userId,
+  //         text: message.text,
+  //         imageUrl: message.imageUrl,
+  //         videoUrl: message.videoUrl,
+  //         audioUrl: message.audioUrl,
+  //         fileUrl: message.fileUrl,
+  //         fileName: message.fileName,
+  //         fileType: message.fileType,
+  //         msgByUserId: user?._id
+  //       });
+
+  //       setMessage({
+  //         text: "",
+  //         imageUrl: "",
+  //         videoUrl: "",
+  //         audioUrl: "",
+  //         fileUrl: "",
+  //         fileType: "",
+  //         fileName: ""
+  //       })
+  //       console.log("Sender ID:", user?._id);
+  //       console.log("Receiver ID:", params.userId);
+  //       // Clear message after sending
+  //       socketConnection.on('Online User', (onlineUsers) => {
+  //         console.log('Received online users:', onlineUsers);
+  //         // Update Redux state or component state with onlineUsers
+  //       });
+
+  //       setMessage({ text: "", imageUrl: "", videoUrl: "", audioUrl: "" , fileUrl: "",
+  //         fileType: "",
+  //         fileName: ""}); //new added
+  //     }
+  //   }
+  // };
+
   const handleSendMessage = (e) => {
     e.preventDefault();
-    console.log('Sending message data:', {
+    
+    // 1. Validate socket connection
+    if (!socketConnection) {
+      console.error('No socket connection available');
+      return;
+    }
+  
+    // 2. Validate required data
+    if (!user?._id || !params.userId) {
+      console.error('Missing user ID or receiver ID', { 
+        userId: user?._id, 
+        receiverId: params.userId 
+      });
+      return;
+    }
+  
+    // 3. Create message payload
+    const messagePayload = {
       sender: user?._id,
       receiver: params.userId,
       text: message.text,
+      imageUrl: message.imageUrl,
+      videoUrl: message.videoUrl,
+      audioUrl: message.audioUrl,
+      fileUrl: message.fileUrl,
+      fileName: message.fileName,
+      fileType: message.fileType,
       msgByUserId: user?._id
-    });
-    if (message.text || message.imageUrl || message.videoUrl || message.audioUrl || message.fileUrl) {
-      if (socketConnection) {
-        socketConnection.emit('new message', {
-          sender: user?._id,
-          receiver: params.userId,
-          text: message.text,
-          imageUrl: message.imageUrl,
-          videoUrl: message.videoUrl,
-          audioUrl: message.audioUrl,
-          fileUrl: message.fileUrl,
-          fileName: message.fileName,
-          fileType: message.fileType,
-          msgByUserId: user?._id
-        });
-
-        setMessage({
-          text: "",
-          imageUrl: "",
-          videoUrl: "",
-          audioUrl: "",
-          fileUrl: "",
-          fileType: "",
-          fileName: ""
-        })
-        console.log("Sender ID:", user?._id);
-        console.log("Receiver ID:", params.userId);
-        // Clear message after sending
-        socketConnection.on('Online User', (onlineUsers) => {
-          console.log('Received online users:', onlineUsers);
-          // Update Redux state or component state with onlineUsers
-        });
-
-        setMessage({ text: "", imageUrl: "", videoUrl: "", audioUrl: "" , fileUrl: "",
-          fileType: "",
-          fileName: ""}); //new added
-      }
+    };
+  
+    console.log('Attempting to send message with payload:', messagePayload);
+  
+    if (message.text || message.imageUrl || message.videoUrl || 
+        message.audioUrl || message.fileUrl) {
+      
+      // 4. Emit message with acknowledgment callback
+      socketConnection.emit('new message', messagePayload, (response) => {
+        if (response?.error) {
+          console.error('Error sending message:', response.error);
+        } else {
+          console.log('Message sent successfully:', response);
+          
+          // 5. Clear message state only after successful send
+          setMessage({
+            text: "",
+            imageUrl: "",
+            videoUrl: "",
+            audioUrl: "",
+            fileUrl: "",
+            fileType: "",
+            fileName: ""
+          });
+        }
+      });
+  
+      // 6. Set up specific handlers for this message
+      const messageId = Date.now(); // Temporary ID for tracking
+      
+      const handleMessageSaved = (savedMessage) => {
+        if (savedMessage.tempId === messageId) {
+          console.log('Message saved successfully:', savedMessage);
+          socketConnection.off('message-saved', handleMessageSaved);
+        }
+      };
+  
+      const handleMessageError = (error) => {
+        if (error.tempId === messageId) {
+          console.error('Error saving message:', error);
+          socketConnection.off('message-error', handleMessageError);
+        }
+      };
+  
+      socketConnection.on('message-saved', handleMessageSaved);
+      socketConnection.on('message-error', handleMessageError);
     }
   };
+  
   const navigate = useNavigate()
   const startRecording = () => {
     navigator.mediaDevices.getUserMedia({ audio: true })
