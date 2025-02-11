@@ -163,30 +163,44 @@ function Checkpasswordpage() {
     try {
       const socket = io(process.env.REACT_APP_BACKEND_URL, {
         auth: { token },
-        transports: ['websocket', 'polling'],
+        transports: ['polling', 'websocket'], // Try polling first, then websocket
         reconnectionAttempts: 3,
-        timeout: 5000
+        timeout: 10000, // Increased timeout
+        forceNew: true,
+        withCredentials: true
       });
 
       return new Promise((resolve, reject) => {
+        let timeoutId;
+
         socket.on('connect', () => {
+          clearTimeout(timeoutId);
           socket.disconnect();
           resolve(true);
         });
 
         socket.on('connect_error', (error) => {
+          console.error('Socket connect error:', error);
+          clearTimeout(timeoutId);
           socket.disconnect();
-          reject(error);
+          resolve(true); // Still resolve as we'll retry in Home component
         });
 
-        // Set timeout for connection attempt
-        setTimeout(() => {
+        socket.on('error', (error) => {
+          console.error('Socket error:', error);
+          clearTimeout(timeoutId);
           socket.disconnect();
-          reject(new Error('Socket connection timeout'));
-        }, 5000);
+          resolve(true); // Still resolve as we'll retry in Home component
+        });
+
+        timeoutId = setTimeout(() => {
+          socket.disconnect();
+          resolve(true); // Still resolve as we'll retry in Home component
+        }, 10000);
       });
     } catch (error) {
-      throw new Error(`Socket initialization failed: ${error.message}`);
+      console.error('Socket initialization error:', error);
+      return true; // Still proceed as we'll retry in Home component
     }
   };
 
@@ -204,7 +218,10 @@ function Checkpasswordpage() {
         },
         {
           withCredentials: true,
-          timeout: 5000
+          timeout: 10000,
+          headers: {
+            'Content-Type': 'application/json'
+          }
         }
       );
 
@@ -224,8 +241,13 @@ function Checkpasswordpage() {
         throw new Error('Failed to store authentication token');
       }
 
-      // 4. Verify Socket Connection
-      await verifySocketConnection(token);
+      // 4. Try Socket Connection (but don't block on failure)
+      try {
+        await verifySocketConnection(token);
+      } catch (socketError) {
+        console.warn('Socket verification warning:', socketError);
+        // Continue anyway - we'll retry in Home component
+      }
 
       // 5. Success - Clear form and navigate
       toast.success('Login successful');
@@ -234,13 +256,11 @@ function Checkpasswordpage() {
 
     } catch (error) {
       console.error('Login error:', error);
-      localStorage.removeItem('Token'); // Clear any partial authentication
+      localStorage.removeItem('Token');
       
       if (error.response) {
         const errorMessage = error.response.data.message || 'Invalid credentials';
         toast.error(errorMessage);
-      } else if (error.message.includes('Socket')) {
-        toast.error('Connection failed. Please try again.');
       } else if (error.request) {
         toast.error('Server not responding. Please try again.');
       } else {
@@ -252,7 +272,6 @@ function Checkpasswordpage() {
   };
 
   useEffect(() => {
-    // Verify required state data
     if (!location?.state?.name || !location?.state?._id) {
       navigate('/email');
       return;
@@ -263,7 +282,6 @@ function Checkpasswordpage() {
       userId: location.state._id
     }));
 
-    // Clear any existing authentication
     localStorage.removeItem('Token');
   }, [location, navigate]);
 
