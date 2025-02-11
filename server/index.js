@@ -34,7 +34,11 @@ const PORT = process.env.PORT || 8080;
 // app.options('*', cors()); // Allow preflight requests for all routes
 
 app.use(cors({
-    origin: true, // Allow all origins
+    // origin: true, // Allow all origins
+    origin: [
+        'https://chat-app-client-black.vercel.app',
+        'http://localhost:3000'
+      ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allow specific methods
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'], // Allow specific headers
     credentials: true, // Allow credentials (cookies, authorization headers, etc.)

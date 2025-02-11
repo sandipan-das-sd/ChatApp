@@ -17,12 +17,18 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: true, // Allow all origins
+    // origin: "https://chat-app-client-black.vercel.app", // Allow all origins
+    origin: [
+      "https://chat-app-client-black.vercel.app",
+      "http://localhost:3000" // Add your local development URL
+    ],
     methods: ['GET', 'POST'], // Allow specific methods
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'], // Allow specific headers
     credentials: true, // Allow credentials (cookies, etc.)
   
-    transports: ['websocket', 'polling']
+    transports: ['websocket', 'polling'],
+    pingTimeout: 60000,
+    pingInterval: 25000
   }
 });
 
