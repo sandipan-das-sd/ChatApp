@@ -77,6 +77,8 @@ const conversationSchema=new moongose.Schema({
 },{
     timestamps:true
 })
+conversationSchema.index({ sender: 1, receiver: 1 });
+conversationSchema.index({ updatedAt: -1 });
 const MessageModel= moongose.model("Message",messageSchema)
 const ConversationModel=moongose.model("Conversation",conversationSchema)
 module.exports={

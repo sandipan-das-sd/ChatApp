@@ -249,6 +249,12 @@ function MessagePage() {
 
   const handleSendMessage = (e) => {
     e.preventDefault();
+    console.log('Sending message data:', {
+      sender: user?._id,
+      receiver: params.userId,
+      text: message.text,
+      msgByUserId: user?._id
+    });
     if (message.text || message.imageUrl || message.videoUrl || message.audioUrl || message.fileUrl) {
       if (socketConnection) {
         socketConnection.emit('new message', {

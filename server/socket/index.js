@@ -385,64 +385,146 @@ io.on('connection', async (socket) => {
       }
     });
 
-    // New message handler
-    socket.on('new message', async (data) => {
-      try {
-        await UserModel.findByIdAndUpdate(data?.msgByUserId, { lastSeen: new Date() });
-        let conversation = await ConversationModel.findOne({
-          "$or": [
-            { sender: data?.sender, receiver: data?.receiver },
-            { sender: data?.receiver, receiver: data?.sender }
-          ]
-        });
+    // // New message handler
+    // socket.on('new message', async (data) => {
+    //   try {
+    //     await UserModel.findByIdAndUpdate(data?.msgByUserId, { lastSeen: new Date() });
+    //     let conversation = await ConversationModel.findOne({
+    //       "$or": [
+    //         { sender: data?.sender, receiver: data?.receiver },
+    //         { sender: data?.receiver, receiver: data?.sender }
+    //       ]
+    //     });
 
-        if (!conversation) {
-          const createConversation = await ConversationModel({
-            sender: data?.sender,
-            receiver: data?.receiver
-          });
-          conversation = await createConversation.save();
-        }
+    //     if (!conversation) {
+    //       const createConversation = await ConversationModel({
+    //         sender: data?.sender,
+    //         receiver: data?.receiver
+    //       });
+    //       conversation = await createConversation.save();
+    //     }
 
-        const message = await MessageModel({
-          text: data.text,
-          imageUrl: data.imageUrl,
-          videoUrl: data.videoUrl,
-          audioUrl: data.audioUrl,
-          fileUrl: data.fileUrl,
-          fileType: data.fileType,
-          fileName: data.fileName,
-          msgByUserId: data?.msgByUserId
-        });
+    //     const message = await MessageModel({
+    //       text: data.text,
+    //       imageUrl: data.imageUrl,
+    //       videoUrl: data.videoUrl,
+    //       audioUrl: data.audioUrl,
+    //       fileUrl: data.fileUrl,
+    //       fileType: data.fileType,
+    //       fileName: data.fileName,
+    //       msgByUserId: data?.msgByUserId
+    //     });
 
-        const saveMessage = await message.save();
-        await ConversationModel.updateOne(
-          { _id: conversation._id },
-          { "$push": { messages: saveMessage._id } }
-        );
+    //     const saveMessage = await message.save();
+    //     await ConversationModel.updateOne(
+    //       { _id: conversation._id },
+    //       { "$push": { messages: saveMessage._id } }
+    //     );
 
-        const getConversationMessage = await ConversationModel.findOne({
-          "$or": [
-            { sender: data?.sender, receiver: data?.receiver },
-            { sender: data?.receiver, receiver: data?.sender }
-          ]
-        }).populate('messages').sort({ updatedAt: -1 });
+    //     const getConversationMessage = await ConversationModel.findOne({
+    //       "$or": [
+    //         { sender: data?.sender, receiver: data?.receiver },
+    //         { sender: data?.receiver, receiver: data?.sender }
+    //       ]
+    //     }).populate('messages').sort({ updatedAt: -1 });
 
-        io.to(data?.sender).emit('message', getConversationMessage?.messages || []);
-        io.to(data?.receiver).emit('message', getConversationMessage?.messages || []);
+    //     io.to(data?.sender).emit('message', getConversationMessage?.messages || []);
+    //     io.to(data?.receiver).emit('message', getConversationMessage?.messages || []);
 
-        const [conversationSender, conversationReceiver] = await Promise.all([
-          getConversation(data?.sender),
-          getConversation(data?.receiver)
-        ]);
+    //     const [conversationSender, conversationReceiver] = await Promise.all([
+    //       getConversation(data?.sender),
+    //       getConversation(data?.receiver)
+    //     ]);
 
-        io.to(data?.sender).emit('conversation', conversationSender);
-        io.to(data?.receiver).emit('conversation', conversationReceiver);
-      } catch (error) {
-        console.error('Error in new message handler:', error);
+    //     io.to(data?.sender).emit('conversation', conversationSender);
+    //     io.to(data?.receiver).emit('conversation', conversationReceiver);
+    //   } catch (error) {
+    //     console.error('Error in new message handler:', error);
+    //   }
+    // });
+// Add this to your 'new message' socket handler for debugging
+socket.on('new message', async (data) => {
+  try {
+    console.log('Received new message data:', data);
+    
+    // 1. Check if required fields are present
+    if (!data?.sender || !data?.receiver || !data?.msgByUserId) {
+      console.error('Missing required fields:', { 
+        sender: data?.sender, 
+        receiver: data?.receiver, 
+        msgByUserId: data?.msgByUserId 
+      });
+      return;
+    }
+
+    // 2. Find or create conversation with detailed logging
+    let conversation = await ConversationModel.findOne({
+      "$or": [
+        { sender: data.sender, receiver: data.receiver },
+        { sender: data.receiver, receiver: data.sender }
+      ]
+    });
+    
+    console.log('Existing conversation:', conversation);
+
+    if (!conversation) {
+      console.log('Creating new conversation...');
+      const createConversation = new ConversationModel({
+        sender: data.sender,
+        receiver: data.receiver
+      });
+      conversation = await createConversation.save();
+      console.log('New conversation created:', conversation);
+    }
+
+    // 3. Create and save message with validation
+    const messageData = {
+      text: data.text || '',
+      imageUrl: data.imageUrl || '',
+      videoUrl: data.videoUrl || '',
+      audioUrl: data.audioUrl || '',
+      fileUrl: data.fileUrl || '',
+      fileType: data.fileType || '',
+      fileName: data.fileName || '',
+      msgByUserId: data.msgByUserId,
+      delivered: false,
+      seen: false
+    };
+
+    console.log('Creating new message with data:', messageData);
+    
+    const message = new MessageModel(messageData);
+    const savedMessage = await message.save();
+    console.log('Message saved successfully:', savedMessage);
+
+    // 4. Update conversation with new message
+    const updateResult = await ConversationModel.updateOne(
+      { _id: conversation._id },
+      { 
+        "$push": { messages: savedMessage._id },
+        "$set": { updatedAt: new Date() }
       }
+    );
+    console.log('Conversation update result:', updateResult);
+
+    // 5. Fetch updated conversation messages
+    const updatedConversation = await ConversationModel.findOne({
+      "_id": conversation._id
+    }).populate('messages');
+    
+    console.log('Emitting updated messages to rooms:', {
+      sender: data.sender,
+      receiver: data.receiver
     });
 
+    // 6. Emit messages to both users
+    io.to(data.sender).emit('message', updatedConversation.messages);
+    io.to(data.receiver).emit('message', updatedConversation.messages);
+
+  } catch (error) {
+    console.error('Error in new message handler:', error);
+  }
+});
     // Sidebar handler
     socket.on('sidebar', async (currentUserId) => {
       try {
