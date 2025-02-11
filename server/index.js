@@ -17,9 +17,27 @@ dotenv.config();
 const PORT = process.env.PORT || 8080;
 
 // Middleware
+// app.use(cors({
+//     origin: function (origin, callback) {
+//         const allowedOrigins = [process.env.FRONTEND_URL, 'https://chat-app-psi-three-33.vercel.app'];
+//         if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+//             callback(null, true);
+//         } else {
+//             callback(new Error('Not allowed by CORS'));
+//             console.log("Not allowed by cors")
+//         }
+//     },
+//     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allow specific methods
+//     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'], // Allow specific headers
+//     credentials: true,
+// }));
+// app.options('*', cors()); // Allow preflight requests for all routes
+
 app.use(cors({
-    origin: process.env.FRONTEND_URL,
-    credentials: true,
+    origin: true, // Allow all origins
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allow specific methods
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'], // Allow specific headers
+    credentials: true, // Allow credentials (cookies, authorization headers, etc.)
 }));
 app.options('*', cors()); // Allow preflight requests for all routes
 
