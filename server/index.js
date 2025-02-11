@@ -72,20 +72,21 @@
 // }).catch(err => {
 //     console.error("Failed to connect to the database", err);
 // });
-// server/index.js
 const express = require("express");
+const { createServer } = require('http');
+const { Server } = require('socket.io');
 const cors = require('cors');
 const dotenv = require("dotenv");
 const connectDB = require("./db/Connection");
 const router = require("./routes/index");
 const cookieParser = require('cookie-parser');
-const { createServer } = require('http');
 
 dotenv.config();
+
 const app = express();
 const server = createServer(app);
 
-// Middleware
+// Configure CORS before initializing Socket.IO
 app.use(cors({
   origin: [
     'https://chat-app-client-black.vercel.app',
@@ -93,11 +94,36 @@ app.use(cors({
   ],
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  credentials: true
+  credentials: true,
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 }));
+
+// Handle preflight requests
+app.options('*', cors());
 
 app.use(express.json());
 app.use(cookieParser());
+
+// Initialize Socket.IO after CORS setup
+const io = new Server(server, {
+  cors: {
+    origin: [
+      'https://chat-app-client-black.vercel.app',
+      'http://localhost:3000'
+    ],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    credentials: true
+  },
+  path: '/socket.io/',
+  transports: ['polling', 'websocket'], // Try polling first
+  allowEIO3: true,
+  pingTimeout: 60000,
+  pingInterval: 25000,
+  upgradeTimeout: 30000,
+  maxHttpBufferSize: 1e8 // 100 MB
+});
 
 // Routes
 app.get("/", (req, res) => {
@@ -110,7 +136,7 @@ app.use('/api', router);
 
 const PORT = process.env.PORT || 8080;
 
-// Start server only after DB connection
+// Connect to database and start server
 connectDB()
   .then(() => {
     server.listen(PORT, () => {
@@ -121,4 +147,4 @@ connectDB()
     console.error("Failed to connect to the database", err);
   });
 
-module.exports = { app, server };
+module.exports = { app, server, io };

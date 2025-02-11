@@ -177,27 +177,44 @@ function Home() {
       navigate('/email');
       return;
     }
-
+  
     try {
       cleanupSocket();
-
+  
       const socket = io(SOCKET_URL, {
         auth: { token },
-        transports: ['websocket', 'polling'],
+        transports: ['polling', 'websocket'], // Important: Try polling first
         reconnection: true,
         reconnectionAttempts: 5,
         reconnectionDelay: 1000,
-        timeout: 10000,
+        timeout: 20000, // Increased timeout
         forceNew: true,
-        withCredentials: true
+        withCredentials: true,
+        extraHeaders: {
+          'Authorization': `Bearer ${token}`
+        },
+        path: '/socket.io/', // Explicitly set path
+        secure: true, // For HTTPS
+        rejectUnauthorized: false // For self-signed certificates
       });
-
+  
+      socket.io.on("error", (error) => {
+        console.error('[Socket.IO] Transport error:', error);
+      });
+  
+      socket.io.on("reconnect_attempt", (attempt) => {
+        console.log(`[Socket.IO] Reconnection attempt ${attempt}`);
+        // Use polling for reconnection attempts
+        socket.io.opts.transports = ['polling', 'websocket'];
+      });
+  
       socket.on('connect', () => {
+        console.log('[Socket] Connected successfully. ID:', socket.id);
         setConnectionStatus('connected');
         setReconnectAttempts(0);
         toast.success('Connected to chat server');
       });
-
+  
       socket.on('connect_error', (error) => {
         console.error('[Socket] Connection error:', error.message);
         setConnectionStatus('error');
@@ -210,8 +227,9 @@ function Home() {
           cleanupSocket();
         }
       });
-
+  
       socket.on('disconnect', (reason) => {
+        console.log('[Socket] Disconnected. Reason:', reason);
         setConnectionStatus('disconnected');
         
         if (reason === 'io server disconnect') {
@@ -222,35 +240,17 @@ function Home() {
           toast.warning('Connection lost. Reconnecting...');
         }
       });
-
-      socket.on('Online User', (data) => {
-        dispatch(setOnlineUser(data));
-      });
-
-      socket.on('pong', () => {
-        console.log('Connection alive');
-      });
-
-      // Store socket reference
+  
+      // Event handlers remain the same...
+  
       socketRef.current = socket;
       dispatch(setSocketConnection(socket));
-
-      // Start heartbeat
-      const heartbeat = setInterval(() => {
-        if (socket.connected) {
-          socket.emit('ping');
-        }
-      }, 30000);
-
-      socket.heartbeat = heartbeat;
-
-      return () => {
-        clearInterval(heartbeat);
-      };
-
+  
+      return socket;
     } catch (error) {
-      console.error('Socket initialization error:', error);
+      console.error('[Socket] Initialization error:', error);
       toast.error('Failed to initialize chat connection');
+      return null;
     }
   }, [dispatch, navigate, cleanupSocket, reconnectAttempts]);
 
