@@ -335,9 +335,6 @@
 
 
 
-//second versuon
-
-
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout, setOnlineUser, setUser, setSocketConnection } from '../redux/userSlice';
@@ -405,35 +402,63 @@ const fetchUserDetails = async (dispatch, navigate) => {
 };
 
 // ConnectionStatus Component
-const ConnectionStatus = React.memo(({ connectionStatus, reconnectAttempts, initializeSocket }) => (
-  <div className={`absolute top-0 left-0 right-0 p-2 text-center z-50 ${
-    connectionStatus === 'connected' ? 'bg-green-100 text-green-700' :
-    connectionStatus === 'disconnected' ? 'bg-yellow-100 text-yellow-700' :
-    'bg-red-100 text-red-700'
-  }`}>
-    <div className="flex justify-center items-center gap-2">
-      <span className="w-2 h-2 rounded-full bg-current"></span>
-      <span className="font-medium">
-        {connectionStatus === 'connected' ? 'Connected' :
-         connectionStatus === 'disconnected' ? 'Reconnecting...' :
-         'Connection Error'}
-      </span>
-      {reconnectAttempts > 0 && (
-        <span className="text-xs ml-2">
-          (Attempt {reconnectAttempts}/5)
+const ConnectionStatus = React.memo(({ 
+  connectionStatus, 
+  reconnectAttempts, 
+  initializeSocket 
+}) => {
+  const [isVisible, setIsVisible] = useState(true);
+
+  useEffect(() => {
+    let timeoutId;
+    
+    if (connectionStatus === 'connected') {
+      timeoutId = setTimeout(() => {
+        setIsVisible(false);
+      }, 3000); // Show for 3 seconds
+    } else if (connectionStatus === 'disconnected') {
+      timeoutId = setTimeout(() => {
+        setIsVisible(false);
+      }, 5000); // Show for 5 seconds
+    }
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [connectionStatus]);
+
+  if (!isVisible) return null;
+
+  return (
+    <div className={`absolute top-0 left-0 right-0 p-2 text-center z-50 ${
+      connectionStatus === 'connected' ? 'bg-green-100 text-green-700' :
+      connectionStatus === 'disconnected' ? 'bg-yellow-100 text-yellow-700' :
+      'bg-red-100 text-red-700'
+    }`}>
+      <div className="flex justify-center items-center gap-2">
+        <span className="w-2 h-2 rounded-full bg-current"></span>
+        <span className="font-medium">
+          {connectionStatus === 'connected' ? 'Connected' :
+           connectionStatus === 'disconnected' ? 'Reconnecting...' :
+           'Connection Error'}
         </span>
-      )}
-      {connectionStatus === 'error' && (
-        <button 
-          onClick={initializeSocket}
-          className="ml-4 px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600 transition-colors"
-        >
-          Retry
-        </button>
-      )}
+        {reconnectAttempts > 0 && (
+          <span className="text-xs ml-2">
+            (Attempt {reconnectAttempts}/5)
+          </span>
+        )}
+        {connectionStatus === 'error' && (
+          <button 
+            onClick={initializeSocket}
+            className="ml-4 px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600 transition-colors"
+          >
+            Retry
+          </button>
+        )}
+      </div>
     </div>
-  </div>
-));
+  );
+});
 
 function Home() {
   const user = useSelector((state) => state.user);
