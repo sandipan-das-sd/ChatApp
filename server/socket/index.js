@@ -182,56 +182,84 @@ io.on('connection', async (socket) => {
     //   io.to(data?.receiver).emit('conversation', conversationReceiver);
     // });
 
-    socket.on('new message', async (data, callback) => {
-      try {
-        console.log('Received message data:', data);
-        
-        // Save message to database
-        const message = new MessageModel({
-          text: data.text,
-          imageUrl: data.imageUrl,
-          videoUrl: data.videoUrl,
-          audioUrl: data.audioUrl,
-          fileUrl: data.fileUrl,
-          fileType: data.fileType,
-          fileName: data.fileName,
-          msgByUserId: data.msgByUserId
-        });
-  
-        const savedMessage = await message.save();
-        console.log('Message saved:', savedMessage);
-  
-        // Find or create conversation
-        let conversation = await ConversationModel.findOne({
-          $or: [
-            { sender: data.sender, receiver: data.receiver },
-            { sender: data.receiver, receiver: data.sender }
-          ]
-        });
-  
-        if (!conversation) {
-          conversation = await ConversationModel.create({
-            sender: data.sender,
-            receiver: data.receiver,
-            messages: [savedMessage._id]
-          });
-        } else {
-          conversation.messages.push(savedMessage._id);
-          await conversation.save();
-        }
-  
-        // Emit to both sender and receiver
-        io.to(data.sender).emit('message', savedMessage);
-        io.to(data.receiver).emit('message', savedMessage);
-  
-        // Send acknowledgment
-        if (callback) callback({ success: true, messageId: savedMessage._id });
-  
-      } catch (error) {
-        console.error('Error handling message:', error);
-        if (callback) callback({ success: false, error: error.message });
-      }
+// Replace ONLY this 'new message' handler in your server code (socket.js)
+socket.on('new message', async (data, callback) => {
+  try {
+    console.log('Received message data:', data);
+    
+    // Save message to database
+    const message = new MessageModel({
+      text: data.text || '',
+      imageUrl: data.imageUrl || '',
+      videoUrl: data.videoUrl || '',
+      audioUrl: data.audioUrl || '',
+      fileUrl: data.fileUrl || '',
+      fileType: data.fileType || '',
+      fileName: data.fileName || '',
+      msgByUserId: data.msgByUserId,
+      delivered: true,
+      seen: false
     });
+
+    const savedMessage = await message.save();
+    console.log('Message saved:', savedMessage);
+
+    // Find or create conversation
+    let conversation = await ConversationModel.findOne({
+      $or: [
+        { sender: data.sender, receiver: data.receiver },
+        { sender: data.receiver, receiver: data.sender }
+      ]
+    });
+
+    if (!conversation) {
+      conversation = new ConversationModel({
+        sender: data.sender,
+        receiver: data.receiver,
+        messages: [savedMessage._id]
+      });
+      await conversation.save();
+    } else {
+      conversation.messages.push(savedMessage._id);
+      await conversation.save();
+    }
+
+    // Get updated conversation messages
+    const updatedConversation = await ConversationModel.findById(conversation._id)
+      .populate('messages')
+      .sort({ updatedAt: -1 });
+
+    // Send acknowledgment
+    if (callback) {
+      callback({ 
+        success: true, 
+        messageId: savedMessage._id 
+      });
+    }
+
+    // Emit updated messages to both users
+    io.to(data.sender).emit('message', updatedConversation.messages);
+    io.to(data.receiver).emit('message', updatedConversation.messages);
+
+    // Update conversation list for both users
+    const [senderConversations, receiverConversations] = await Promise.all([
+      getConversation(data.sender),
+      getConversation(data.receiver)
+    ]);
+
+    io.to(data.sender).emit('conversation', senderConversations);
+    io.to(data.receiver).emit('conversation', receiverConversations);
+
+  } catch (error) {
+    console.error('Error handling message:', error);
+    if (callback) {
+      callback({ 
+        success: false, 
+        error: error.message 
+      });
+    }
+  }
+});
 
     // Sidebar
     socket.on('sidebar', async (currentUserId) => {

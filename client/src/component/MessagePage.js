@@ -256,7 +256,23 @@ function MessagePage() {
       console.log('Socket connection not established');
     }
   }, [socketConnection, params.userId, user]);
-
+  useEffect(() => {
+    if (socketConnection) {
+      const handleConnect = () => {
+        console.log('Socket connected:', socketConnection.id);
+        // Re-fetch messages when reconnected
+        socketConnection.emit('message-page', params.userId);
+      };
+  
+      socketConnection.on('connect', handleConnect);
+      socketConnection.on('disconnect', () => console.log('Socket disconnected'));
+  
+      return () => {
+        socketConnection.off('connect', handleConnect);
+        socketConnection.off('disconnect');
+      };
+    }
+  }, [socketConnection, params.userId]);
 
 
   const handleOnChange = (e) => {
