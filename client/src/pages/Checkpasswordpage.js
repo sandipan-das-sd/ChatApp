@@ -32,18 +32,53 @@ function Checkpasswordpage() {
       const response = await axios.post(URL, {
         userId: data.userId,
         password: data.password
-      }, { withCredentials: true });
+      }, { withCredentials: true,
+
+        timeout: 5000 
+       });
 
       toast.success(response.data.message);
 
+      // if (response.data.success) {
+
+      //   dispatch(setToken(response.data.token));// store the token to redux state
+      //   localStorage.setItem('Token', response.data.token);
+      //   setData({ password: "", userId: "" });
+      //   navigate('/');
+      // }
       if (response.data.success) {
-        dispatch(setToken(response.data.token));// store the token to redux state
-        localStorage.setItem('Token', response.data.token);
-        setData({ password: "", userId: "" });
-        navigate('/');
+        const token = response.data.token;
+        if (!token) {
+          throw new Error('No token received from server');
+        }
+        
+        localStorage.setItem('Token', token);
+        dispatch(setToken(token));
+        
+        // Verify token is stored before navigation
+        const storedToken = localStorage.getItem('Token');
+        if (storedToken) {
+          navigate('/');
+        } else {
+          throw new Error('Failed to store authentication token');
+        }
       }
-    } catch (error) {
-      toast.error(error?.response?.data?.message || "Login failed. Please try again.");
+    } 
+    // catch (error) {
+    //   toast.error(error?.response?.data?.message || "Login failed. Please try again.");
+    // }
+    catch (error) {
+      if (error.response) {
+        // Server responded with error
+        toast.error(error.response.data.message);
+      } else if (error.request) {
+        // Request made but no response
+        toast.error('No response from server. Please try again.');
+      } else {
+        // Other errors
+        toast.error('An error occurred. Please try again.');
+      }
+      console.error('Login error:', error);
     }
   };
 
